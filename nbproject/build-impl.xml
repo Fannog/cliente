@@ -43,11 +43,7 @@ is divided into following sections:
         <property file="nbproject/private/private.properties"/>
     </target>
     <target name="-pre-init-libraries">
-<<<<<<< HEAD
         <property location=".\lib\nblibraries.properties" name="libraries.path"/>
-=======
-        <property location="lib\nblibraries.properties" name="libraries.path"/>
->>>>>>> c44ca592c78b4a71de882dbe9f145a5f11f1b28c
         <dirname file="${libraries.path}" property="libraries.dir.nativedirsep"/>
         <pathconvert dirsep="/" property="libraries.dir">
             <path path="${libraries.dir.nativedirsep}"/>
@@ -1096,18 +1092,15 @@ is divided into following sections:
         <propertyfile file="${built-jar.properties}">
             <entry key="${basedir}" value=""/>
         </propertyfile>
-<<<<<<< HEAD
-=======
         <antcall target="-maybe-call-dep">
             <param name="call.built.properties" value="${built-jar.properties}"/>
-            <param location="${project.ProyectoEJB-ejb}" name="call.subproject"/>
-            <param location="${project.ProyectoEJB-ejb}/build.xml" name="call.script"/>
+            <param location="${project.ProyectoEJB-ejb-1}" name="call.subproject"/>
+            <param location="${project.ProyectoEJB-ejb-1}/build.xml" name="call.script"/>
             <param name="call.target" value="dist"/>
             <param name="transfer.built-jar.properties" value="${built-jar.properties}"/>
             <param name="transfer.not.archive.disabled" value="true"/>
             <param name="transfer.do.jlink" value="false"/>
         </antcall>
->>>>>>> c44ca592c78b4a71de882dbe9f145a5f11f1b28c
     </target>
     <target depends="init,-check-automatic-build,-clean-after-automatic-build" name="-verify-automatic-build"/>
     <target depends="init" name="-check-automatic-build">
@@ -1779,18 +1772,15 @@ is divided into following sections:
         <propertyfile file="${built-clean.properties}">
             <entry key="${basedir}" value=""/>
         </propertyfile>
-<<<<<<< HEAD
-=======
         <antcall target="-maybe-call-dep">
             <param name="call.built.properties" value="${built-clean.properties}"/>
-            <param location="${project.ProyectoEJB-ejb}" name="call.subproject"/>
-            <param location="${project.ProyectoEJB-ejb}/build.xml" name="call.script"/>
+            <param location="${project.ProyectoEJB-ejb-1}" name="call.subproject"/>
+            <param location="${project.ProyectoEJB-ejb-1}/build.xml" name="call.script"/>
             <param name="call.target" value="clean"/>
             <param name="transfer.built-clean.properties" value="${built-clean.properties}"/>
             <param name="transfer.not.archive.disabled" value="true"/>
             <param name="transfer.do.jlink" value="false"/>
         </antcall>
->>>>>>> c44ca592c78b4a71de882dbe9f145a5f11f1b28c
     </target>
     <target depends="init" name="-do-clean">
         <delete dir="${build.dir}"/>

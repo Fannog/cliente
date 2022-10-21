@@ -12,15 +12,11 @@
             </test-roots>
         </data>
         <libraries xmlns="http://www.netbeans.org/ns/ant-project-libraries/1">
-<<<<<<< HEAD
             <definitions>.\lib\nblibraries.properties</definitions>
-        </libraries>
-=======
-            <definitions>lib\nblibraries.properties</definitions>
         </libraries>
         <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
             <reference>
-                <foreign-project>ProyectoEJB-ejb</foreign-project>
+                <foreign-project>ProyectoEJB-ejb-1</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>dist</target>
@@ -28,6 +24,5 @@
                 <id>dist</id>
             </reference>
         </references>
->>>>>>> c44ca592c78b4a71de882dbe9f145a5f11f1b28c
     </configuration>
 </project>

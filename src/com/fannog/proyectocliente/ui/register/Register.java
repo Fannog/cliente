@@ -1,9 +1,10 @@
 package com.fannog.proyectocliente.ui.register;
 
-import java.awt.event.KeyEvent;
+import com.fannog.proyectocliente.utils.FieldUtils;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -14,7 +15,15 @@ public class Register extends javax.swing.JFrame {
 
     public Register() {
         initComponents();
-        camposTipoUsuario();
+
+        formTutor.setVisible(false);
+    }
+
+    public void camposTipoUsuario() {
+        String selectedTipoUsuario = comboTipoUsuario.getSelectedItem().toString();
+
+        formTutor.setVisible(selectedTipoUsuario.equalsIgnoreCase("tutor"));
+        formEstudiante.setVisible(selectedTipoUsuario.equalsIgnoreCase("estudiante"));
     }
 
     @SuppressWarnings("unchecked")
@@ -27,10 +36,8 @@ public class Register extends javax.swing.JFrame {
         lblNombres = new javax.swing.JLabel();
         lblApellidos = new javax.swing.JLabel();
         lblDocumento = new javax.swing.JLabel();
-        txtDocumento = new javax.swing.JTextField();
         lblEmail = new javax.swing.JLabel();
         txtEmail = new javax.swing.JTextField();
-        txtTelefono = new javax.swing.JTextField();
         lblTelefono = new javax.swing.JLabel();
         lblConstrasenia = new javax.swing.JLabel();
         txtConstrasenia = new javax.swing.JPasswordField();
@@ -39,16 +46,13 @@ public class Register extends javax.swing.JFrame {
         comboTipoUsuario = new javax.swing.JComboBox<>();
         comboITR = new javax.swing.JComboBox<>();
         lblITR = new javax.swing.JLabel();
-        lblArea = new javax.swing.JLabel();
-        txtArea = new javax.swing.JTextField();
-        lblAnioIngreso = new javax.swing.JLabel();
-        txtAnioIngreso = new javax.swing.JTextField();
-        comboRolTutor = new javax.swing.JComboBox<>();
-        lblRolTutor = new javax.swing.JLabel();
+        txtDocumento = new javax.swing.JFormattedTextField();
+        txtTelefono = new javax.swing.JFormattedTextField();
+        formEstudiante = new com.fannog.proyectocliente.ui.register.RegisterEstudianteForm();
+        formTutor = new com.fannog.proyectocliente.ui.register.RegisterTutorForm();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Registrarse");
-        setResizable(false);
 
         jLabel1.setFont(new java.awt.Font("Source Serif Pro Black", 0, 36)); // NOI18N
         jLabel1.setText("Registrarse");
@@ -86,24 +90,10 @@ public class Register extends javax.swing.JFrame {
         lblDocumento.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         lblDocumento.setText("Documento");
 
-        txtDocumento.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        txtDocumento.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                txtDocumentoKeyTyped(evt);
-            }
-        });
-
         lblEmail.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         lblEmail.setText("Email");
 
         txtEmail.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-
-        txtTelefono.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        txtTelefono.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                txtTelefonoKeyTyped(evt);
-            }
-        });
 
         lblTelefono.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         lblTelefono.setText("Telefono");
@@ -148,155 +138,114 @@ public class Register extends javax.swing.JFrame {
         lblITR.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         lblITR.setText("ITR");
 
-        lblArea.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        lblArea.setText("Área correspondiente");
+        try {
+            txtDocumento.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.MaskFormatter("#.###.###-#")));
+        } catch (java.text.ParseException ex) {
+            ex.printStackTrace();
+        }
+        txtDocumento.setFont(new java.awt.Font("Source Sans Pro", 0, 16)); // NOI18N
 
-        txtArea.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        txtArea.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtAreaActionPerformed(evt);
-            }
-        });
-        txtArea.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                txtAreaKeyTyped(evt);
-            }
-        });
-
-        lblAnioIngreso.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        lblAnioIngreso.setText("Año de ingreso");
-        lblAnioIngreso.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-
-        txtAnioIngreso.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        txtAnioIngreso.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtAnioIngresoActionPerformed(evt);
-            }
-        });
-        txtAnioIngreso.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                txtAnioIngresoKeyTyped(evt);
-            }
-        });
-
-        comboRolTutor.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        comboRolTutor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Encargado", "Tutor" }));
-        comboRolTutor.setToolTipText("");
-        comboRolTutor.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboRolTutorActionPerformed(evt);
-            }
-        });
-
-        lblRolTutor.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        lblRolTutor.setText("Rol del Tutor");
+        try {
+            txtTelefono.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.MaskFormatter("09# ### ###")));
+        } catch (java.text.ParseException ex) {
+            ex.printStackTrace();
+        }
+        txtTelefono.setFont(new java.awt.Font("Source Sans Pro", 0, 16)); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(30, 30, 30)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(comboRolTutor, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblRolTutor)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addComponent(btnRegistrarse, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addComponent(lblNombres)
-                            .addGap(180, 180, 180)
-                            .addComponent(lblApellidos))
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addComponent(txtNombres, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(12, 12, 12)
-                            .addComponent(txtApellidos, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addComponent(lblDocumento)
-                            .addGap(161, 161, 161)
-                            .addComponent(lblEmail))
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addComponent(txtDocumento, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(12, 12, 12)
-                            .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addComponent(lblTelefono)
-                            .addGap(181, 181, 181)
-                            .addComponent(lblConstrasenia))
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addComponent(txtTelefono, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(12, 12, 12)
-                            .addComponent(txtConstrasenia, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addComponent(lblTipoDeUsuario)
-                            .addGap(127, 127, 127)
-                            .addComponent(lblITR))
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addComponent(comboTipoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(comboITR, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(lblAnioIngreso)
-                                .addComponent(txtAnioIngreso, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(lblArea)
-                                .addComponent(txtArea, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addGap(30, 30, 30))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(42, 42, 42)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(formTutor, javax.swing.GroupLayout.DEFAULT_SIZE, 570, Short.MAX_VALUE)
+                    .addComponent(formEstudiante, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnRegistrarse, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(comboTipoUsuario, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(txtNombres)
+                            .addComponent(txtDocumento)
+                            .addComponent(txtTelefono)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(lblTelefono)
+                                    .addComponent(lblDocumento)
+                                    .addComponent(lblTipoDeUsuario)
+                                    .addComponent(lblNombres))
+                                .addGap(0, 0, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtApellidos)
+                            .addComponent(txtEmail)
+                            .addComponent(comboITR, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(txtConstrasenia)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(lblApellidos)
+                                    .addComponent(lblEmail)
+                                    .addComponent(lblConstrasenia)
+                                    .addComponent(lblITR))
+                                .addGap(0, 0, Short.MAX_VALUE)))))
+                .addGap(42, 42, 42))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(25, 25, 25)
+                .addGap(20, 20, 20)
                 .addComponent(jLabel1)
-                .addGap(16, 16, 16)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblNombres)
-                    .addComponent(lblApellidos))
+                .addGap(30, 30, 30)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblNombres)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtNombres, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblApellidos)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtApellidos, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(22, 22, 22)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblEmail)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblDocumento)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtDocumento)))
+                .addGap(22, 22, 22)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblTelefono)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtTelefono))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblConstrasenia)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtConstrasenia, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(22, 22, 22)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(lblITR)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(comboITR, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblTipoDeUsuario)
+                        .addGap(12, 12, 12)
+                        .addComponent(comboTipoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(1, 1, 1)))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txtNombres, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtApellidos, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblDocumento)
-                    .addComponent(lblEmail))
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txtDocumento, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblTelefono)
-                    .addComponent(lblConstrasenia))
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txtTelefono, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtConstrasenia, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblTipoDeUsuario)
-                    .addComponent(lblITR))
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(comboTipoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comboITR, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblArea)
-                    .addComponent(lblAnioIngreso))
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtArea, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtAnioIngreso, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(formEstudiante, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(lblRolTutor)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(comboRolTutor, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnRegistrarse)
-                .addContainerGap())
+                .addComponent(formTutor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
+                .addComponent(btnRegistrarse, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(12, 12, 12))
         );
 
         pack();
@@ -304,24 +253,19 @@ public class Register extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void comboTipoUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboTipoUsuarioActionPerformed
-
+        camposTipoUsuario();
     }//GEN-LAST:event_comboTipoUsuarioActionPerformed
 
     private void comboITRActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboITRActionPerformed
 
     }//GEN-LAST:event_comboITRActionPerformed
 
-    private void txtAreaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtAreaActionPerformed
-
-    }//GEN-LAST:event_txtAreaActionPerformed
-
     private void comboTipoUsuarioItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_comboTipoUsuarioItemStateChanged
-        camposTipoUsuario();
+        String selectedTipoUsuario = comboTipoUsuario.getSelectedItem().toString();
+
+        formTutor.setVisible(selectedTipoUsuario.equalsIgnoreCase("tutor"));
+        formEstudiante.setVisible(selectedTipoUsuario.equalsIgnoreCase("estudiante"));
     }//GEN-LAST:event_comboTipoUsuarioItemStateChanged
-
-    private void txtAnioIngresoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtAnioIngresoActionPerformed
-
-    }//GEN-LAST:event_txtAnioIngresoActionPerformed
 
     private void txtNombresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNombresActionPerformed
 
@@ -331,17 +275,11 @@ public class Register extends javax.swing.JFrame {
 
     }//GEN-LAST:event_txtApellidosActionPerformed
 
-    private void comboRolTutorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboRolTutorActionPerformed
-
-    }//GEN-LAST:event_comboRolTutorActionPerformed
-
     private void btnRegistrarseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarseActionPerformed
         if (comprobarCamposBlancos() == true) {
 
         } else if (verificarCaracteres() == true) {
 
-        } else if (!txtTelefono.getText().startsWith("09")) {
-            JOptionPane.showMessageDialog(this, "Telefono debe tener formato 09XXXXXXX");
         } else if (validarFechaIngreso() == true) {
 
         } else {
@@ -349,30 +287,13 @@ public class Register extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnRegistrarseActionPerformed
 
-    private void txtTelefonoKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtTelefonoKeyTyped
-        esNumero(evt);
-    }//GEN-LAST:event_txtTelefonoKeyTyped
-
-    private void txtDocumentoKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtDocumentoKeyTyped
-        esNumero(evt);
-    }//GEN-LAST:event_txtDocumentoKeyTyped
-
     private void txtNombresKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNombresKeyTyped
-        esTexto(evt);
-
+        FieldUtils.esTexto(evt);
     }//GEN-LAST:event_txtNombresKeyTyped
 
     private void txtApellidosKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtApellidosKeyTyped
-        esTexto(evt);
+        FieldUtils.esTexto(evt);
     }//GEN-LAST:event_txtApellidosKeyTyped
-
-    private void txtAnioIngresoKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtAnioIngresoKeyTyped
-        esNumero(evt);
-    }//GEN-LAST:event_txtAnioIngresoKeyTyped
-
-    private void txtAreaKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtAreaKeyTyped
-        esTexto(evt);
-    }//GEN-LAST:event_txtAreaKeyTyped
 
     public static void main(String args[]) {
 
@@ -388,28 +309,24 @@ public class Register extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnRegistrarse;
     private javax.swing.JComboBox<String> comboITR;
-    private javax.swing.JComboBox<String> comboRolTutor;
     private javax.swing.JComboBox<String> comboTipoUsuario;
+    private com.fannog.proyectocliente.ui.register.RegisterEstudianteForm formEstudiante;
+    private com.fannog.proyectocliente.ui.register.RegisterTutorForm formTutor;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel lblAnioIngreso;
     private javax.swing.JLabel lblApellidos;
-    private javax.swing.JLabel lblArea;
     private javax.swing.JLabel lblConstrasenia;
     private javax.swing.JLabel lblDocumento;
     private javax.swing.JLabel lblEmail;
     private javax.swing.JLabel lblITR;
     private javax.swing.JLabel lblNombres;
-    private javax.swing.JLabel lblRolTutor;
     private javax.swing.JLabel lblTelefono;
     private javax.swing.JLabel lblTipoDeUsuario;
-    private javax.swing.JTextField txtAnioIngreso;
     private javax.swing.JTextField txtApellidos;
-    private javax.swing.JTextField txtArea;
     private javax.swing.JPasswordField txtConstrasenia;
-    private javax.swing.JTextField txtDocumento;
+    private javax.swing.JFormattedTextField txtDocumento;
     private javax.swing.JTextField txtEmail;
     private javax.swing.JTextField txtNombres;
-    private javax.swing.JTextField txtTelefono;
+    private javax.swing.JFormattedTextField txtTelefono;
     // End of variables declaration//GEN-END:variables
 
     public boolean verificarCaracteres() {
@@ -422,25 +339,14 @@ public class Register extends javax.swing.JFrame {
         } else if (txtApellidos.getText().length() >= 50 || txtApellidos.getText().length() <= 2) {
             JOptionPane.showMessageDialog(this, "Apellidos debe contener entre 2 y 50 caracteres");
             return true;
-        } else if (txtDocumento.getText().length() != 8) {
-            JOptionPane.showMessageDialog(this, "Documento debe tener formato 12345678");
-            return true;
         } else if (matcher.find() == false) {
             JOptionPane.showMessageDialog(this, "Email debe tener formato ejemplo@ejemplo.com");
-            return true;
-        } else if (txtTelefono.getText().length() != 9) {
-            JOptionPane.showMessageDialog(this, "Telefono debe tener 9 digitos");
             return true;
         } else if (txtConstrasenia.getPassword().length >= 20 || txtConstrasenia.getPassword().length <= 4) {
             JOptionPane.showMessageDialog(this, "Contraseña debe tener entre 4 y 20 caracteres");
             return true;
-        } else if (comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("estudiante")) {
-            if (txtAnioIngreso.getText().length() != 4) {
-                JOptionPane.showMessageDialog(this, "Año de Ingreso debe tener 4 digitos");
-                return true;
-            }
         } else if ((comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("tutor"))) {
-            if (txtArea.getText().length() >= 50 || txtArea.getText().length() <= 2) {
+            if (formTutor.getArea().length() >= 50 || formTutor.getArea().length() <= 2) {
                 JOptionPane.showMessageDialog(this, "");
                 return true;
             }
@@ -470,12 +376,12 @@ public class Register extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Contraseña se encuentra vacío");
             return true;
         } else if (comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("estudiante")) {
-            if (txtAnioIngreso.getText().isBlank()) {
+            if (formEstudiante.getAñoIngreso() == null) {
                 JOptionPane.showMessageDialog(this, "Año de Ingreso se encuentra vacío");
                 return true;
             }
         } else if (comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("estudiante")) {
-            if (txtArea.getText().isBlank()) {
+            if (formTutor.getArea().isBlank()) {
                 JOptionPane.showMessageDialog(this, "Año de Ingreso se encuentra vacío");
                 return true;
             }
@@ -485,60 +391,13 @@ public class Register extends javax.swing.JFrame {
         return false;
     }
 
-    /**
-     *
-     */
-    public void camposTipoUsuario() {
-        if (comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("tutor")) {
-            txtArea.setVisible(true);
-            lblArea.setVisible(true);
-            lblRolTutor.setVisible(true);
-            comboRolTutor.setVisible(true);
-
-            lblAnioIngreso.setVisible(false);
-            txtAnioIngreso.setVisible(false);
-
-        } else if (comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("estudiante")) {
-            lblAnioIngreso.setVisible(true);
-            txtAnioIngreso.setVisible(true);
-
-            txtArea.setVisible(false);
-            lblArea.setVisible(false);
-            lblRolTutor.setVisible(false);
-            comboRolTutor.setVisible(false);
-        } else {
-            lblAnioIngreso.setVisible(false);
-            txtAnioIngreso.setVisible(false);
-            txtArea.setVisible(false);
-            lblArea.setVisible(false);
-            lblRolTutor.setVisible(false);
-            comboRolTutor.setVisible(false);
-        }
-    }
-
-    public void esNumero(java.awt.event.KeyEvent evt) {
-        Character c = evt.getKeyChar();
-
-        if (!Character.isDigit(c)) {
-            evt.consume();
-        }
-    }
-
-    public void esTexto(java.awt.event.KeyEvent evt) {
-        Character c = evt.getKeyChar();
-
-        if (!Character.isLetter(c) && c != KeyEvent.VK_SPACE) {
-            evt.consume();
-        }
-    }
-
     public boolean validarFechaIngreso() {
         try {
             Date fechaActual = new Date(System.currentTimeMillis());
-            String fechaIngreso = txtAnioIngreso.getText();
+            Optional<Integer> fechaIngreso = formEstudiante.getAñoIngreso();
             Date fechaFundacion = new Date(1012);
             SimpleDateFormat date = new SimpleDateFormat("yyyy");
-            Date fechaInicioDate = date.parse(fechaIngreso);
+            Date fechaInicioDate = date.parse(fechaIngreso.toString());
 
             if (fechaInicioDate.after(fechaActual)) {
                 JOptionPane.showMessageDialog(this, "Año de Ingreso es mayor al año actual");
