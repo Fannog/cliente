@@ -8,10 +8,9 @@ public class RegisterEstudianteForm extends javax.swing.JPanel {
         initComponents();
     }
 
-    public Optional<Integer> getAñoIngreso() {
-        String txt = txtAñoIngreso.getText();
-
-        return Optional.ofNullable(Integer.valueOf(txtAñoIngreso.getText()));
+    public String getAñoIngreso() {
+       return txtAñoIngreso.getText();
+        
     }
 
     @SuppressWarnings("unchecked")
