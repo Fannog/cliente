@@ -3,8 +3,8 @@ package com.fannog.proyectocliente.ui.register;
 import com.fannog.proyectocliente.utils.FieldUtils;
 import com.fannog.proyectocliente.utils.Validator;
 import com.fannog.proyectoservidor.DAO.DepartamentoDAO;
+import com.fannog.proyectoservidor.DAO.EstadoUsuarioDAO;
 import com.fannog.proyectoservidor.DAO.impl.AnalistaDAOImpl;
-import com.fannog.proyectoservidor.DAO.impl.DepartamentoDAOImpl;
 import com.fannog.proyectoservidor.DAO.impl.EstadoUsuarioDAOImpl;
 import com.fannog.proyectoservidor.DAO.impl.EstudianteDAOImpl;
 import com.fannog.proyectoservidor.DAO.impl.LocalidadDAOImpl;
@@ -13,6 +13,7 @@ import com.fannog.proyectoservidor.entities.Analista;
 import com.fannog.proyectoservidor.entities.Departamento;
 import com.fannog.proyectoservidor.entities.EstadoUsuario;
 import com.fannog.proyectoservidor.entities.Estudiante;
+import com.fannog.proyectoservidor.entities.Localidad;
 import com.fannog.proyectoservidor.entities.Tutor;
 import com.fannog.proyectoservidor.exceptions.ServicioException;
 import java.time.Year;
@@ -22,7 +23,7 @@ import javax.naming.NamingException;
 import javax.swing.DefaultComboBoxModel;
 
 public class Register extends javax.swing.JFrame {
-    
+
     Validator validator = new Validator();
 
     public Register() {
@@ -31,14 +32,32 @@ public class Register extends javax.swing.JFrame {
         llenarComboDepartamento();
     }
 
+    //LLENAR COMBOBOX CON TODOS LOS DEPARTAMENTOS
     public void llenarComboDepartamento() {
-        Departamento departamento = new Departamento();
-        DepartamentoDAOImpl depto = new DepartamentoDAOImpl();
-        List<Departamento> departamentos = depto.findAll();
-        
-        comboDepartamento.setModel(new DefaultComboBoxModel<>(departamentos.toArray(String[]::new)));
+        try {
+            DepartamentoDAO depDAO = InitialContext.doLookup("ejb:ProyectoServidor/ProyectoEJB-ejb/DepartamentoDAOImpl!com.fannog.proyectoservidor.DAO.DepartamentoDAO");
+
+            List<Departamento> departamentos = depDAO.findAll();
+            for (Departamento dep : departamentos) {
+                comboDepartamento.addItem(dep.getNombre());
+            }
+        } catch (NamingException e) {
+
+        }
     }
-    
+
+//    public void llenarComboLocalidad()throws NamingException {
+//        LocalidadDAOImpl lclDAO = InitialContext.doLookup("ejb:ProyectoServidor/ProyectoEJB-ejb/LocalidadDAOImpl!com.fannog.DAO.LocalidadDAO");
+//        List<Localidad> localidades = lclDAO.findAll();
+//        for(Localidad lcl : localidades) {
+//            if(comboDepartamento.getSelectedItem()) {
+//                
+//            } else {
+//                
+//            }
+//        }
+//    }
+
     /*
     METODO PARA COMPROBAR TIPO DE USUARIO ESTA SELECCIONADO Y MODIFICAR
     LA VENTANA DE REGISTRO EN FUNCION DE ESO
@@ -60,12 +79,9 @@ public class Register extends javax.swing.JFrame {
     }
 
     //METODO PARA REGISTRAR UN USUARIO AL SISTEMA
-    public void registrarUsuario() throws ServicioException {
-       
+    public void registrarUsuario() throws ServicioException, NamingException {
 
-        LocalidadDAOImpl localidad = new LocalidadDAOImpl();
-        EstadoUsuarioDAOImpl estadoUsuario1 = new EstadoUsuarioDAOImpl();
-        EstadoUsuario estadoUsuario = estadoUsuario1.findById(1L);
+        EstadoUsuarioDAO estUsuDAO = InitialContext.doLookup("ejb:ProyectoServidor/ProyectoEJB-ejb/EstadoUsuarioDAOImpl!com.fannog.DAO.EstadoUsuarioDAO");
 
         //RECOPILACIÓN DE DATOS GENERICOS DE USUARIO
         String nombresUsuario = txtNombres.getText();
@@ -87,7 +103,7 @@ public class Register extends javax.swing.JFrame {
             String areaTutor = registerTutorForm1.getArea();
             String rolTutor = registerTutorForm1.getRol();
 
-            Tutor t1 = new Tutor(areaTutor, rolTutor, apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estadoUsuario, localidad.findById(1924L));
+            Tutor t1 = new Tutor(areaTutor, rolTutor, apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estUsuDAO.findById(1L), localidad.findById(1924L));
             TutorDAOImpl tutor = new TutorDAOImpl();
             tutor.create(t1);
             System.out.println("Tutor creado");
@@ -97,7 +113,7 @@ public class Register extends javax.swing.JFrame {
             String añoIng = registerEstudianteForm1.getAñoIngreso();
             int añoC = Integer.parseInt(añoIng);
             Year y = Year.of(añoC);
-            
+
             Estudiante e1 = new Estudiante(y, apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estadoUsuario, localidad.findById(1924L));
             EstudianteDAOImpl estudiante = new EstudianteDAOImpl();
             estudiante.create(e1);
@@ -428,16 +444,11 @@ public class Register extends javax.swing.JFrame {
     }//GEN-LAST:event_txtApellidosActionPerformed
 
     private void btnRegistrarseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarseActionPerformed
-//        try {
-//            registrarUsuario();
-//        } catch (ServicioException ex) {
-//            Logger.getLogger(Register.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-
-        LocalidadDAOImpl localidad = new LocalidadDAOImpl();
-        EstadoUsuarioDAOImpl estadoUsuario = new EstadoUsuarioDAOImpl();
-        
-        System.out.println(estadoUsuario.findAll());
+        try {
+            registrarUsuario();
+        } catch (ServicioException ex) {
+            Logger.getLogger(Register.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_btnRegistrarseActionPerformed
 
     private void txtNombresKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNombresKeyTyped
@@ -460,10 +471,8 @@ public class Register extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_comboLocalidadActionPerformed
 
-    public static void main(String args[]) throws NamingException {
-        
-        DepartamentoDAO depDAO = InitialContext.doLookup("ejb:ProyectoServidor/ProyectoEJB-ejb/DepartamentoDAOImpl!com.fannog.proyectoservidor.DAO.DepartamentoDAO");
-                                                                
+    public static void main(String args[]) {
+
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
