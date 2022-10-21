@@ -5,22 +5,20 @@ import com.fannog.proyectocliente.utils.Validator;
 import com.fannog.proyectoservidor.DAO.DepartamentoDAO;
 import com.fannog.proyectoservidor.DAO.EstadoUsuarioDAO;
 import com.fannog.proyectoservidor.DAO.impl.AnalistaDAOImpl;
-import com.fannog.proyectoservidor.DAO.impl.EstadoUsuarioDAOImpl;
 import com.fannog.proyectoservidor.DAO.impl.EstudianteDAOImpl;
-import com.fannog.proyectoservidor.DAO.impl.LocalidadDAOImpl;
 import com.fannog.proyectoservidor.DAO.impl.TutorDAOImpl;
 import com.fannog.proyectoservidor.entities.Analista;
 import com.fannog.proyectoservidor.entities.Departamento;
-import com.fannog.proyectoservidor.entities.EstadoUsuario;
 import com.fannog.proyectoservidor.entities.Estudiante;
 import com.fannog.proyectoservidor.entities.Localidad;
 import com.fannog.proyectoservidor.entities.Tutor;
 import com.fannog.proyectoservidor.exceptions.ServicioException;
+import java.lang.System.Logger.Level;
 import java.time.Year;
 import java.util.List;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.swing.DefaultComboBoxModel;
+import org.jboss.logging.Logger;
 
 public class Register extends javax.swing.JFrame {
 
@@ -38,25 +36,19 @@ public class Register extends javax.swing.JFrame {
             DepartamentoDAO depDAO = InitialContext.doLookup("ejb:ProyectoServidor/ProyectoEJB-ejb/DepartamentoDAOImpl!com.fannog.proyectoservidor.DAO.DepartamentoDAO");
 
             List<Departamento> departamentos = depDAO.findAll();
+            List<Localidad> localidades = departamentos.get(comboDepartamento.getSelectedIndex()).getLocalidades();
+            
             for (Departamento dep : departamentos) {
                 comboDepartamento.addItem(dep.getNombre());
+            }
+            
+            for (Localidad loc : localidades) {
+                comboLocalidad.addItem(loc.getNombre());
             }
         } catch (NamingException e) {
 
         }
     }
-
-//    public void llenarComboLocalidad()throws NamingException {
-//        LocalidadDAOImpl lclDAO = InitialContext.doLookup("ejb:ProyectoServidor/ProyectoEJB-ejb/LocalidadDAOImpl!com.fannog.DAO.LocalidadDAO");
-//        List<Localidad> localidades = lclDAO.findAll();
-//        for(Localidad lcl : localidades) {
-//            if(comboDepartamento.getSelectedItem()) {
-//                
-//            } else {
-//                
-//            }
-//        }
-//    }
 
     /*
     METODO PARA COMPROBAR TIPO DE USUARIO ESTA SELECCIONADO Y MODIFICAR
@@ -103,7 +95,7 @@ public class Register extends javax.swing.JFrame {
             String areaTutor = registerTutorForm1.getArea();
             String rolTutor = registerTutorForm1.getRol();
 
-            Tutor t1 = new Tutor(areaTutor, rolTutor, apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estUsuDAO.findById(1L), localidad.findById(1924L));
+            Tutor t1 = new Tutor(areaTutor, rolTutor, apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estUsuDAO.findById(1L), null);
             TutorDAOImpl tutor = new TutorDAOImpl();
             tutor.create(t1);
             System.out.println("Tutor creado");
@@ -114,7 +106,7 @@ public class Register extends javax.swing.JFrame {
             int añoC = Integer.parseInt(añoIng);
             Year y = Year.of(añoC);
 
-            Estudiante e1 = new Estudiante(y, apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estadoUsuario, localidad.findById(1924L));
+            Estudiante e1 = new Estudiante(y, apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estUsuDAO.findById(1L), null);
             EstudianteDAOImpl estudiante = new EstudianteDAOImpl();
             estudiante.create(e1);
             System.out.println("Estudiante creado");
@@ -122,7 +114,7 @@ public class Register extends javax.swing.JFrame {
             //CREACIÓN DE USUARIO DE TIPO ANALISTA
         } else {
 
-            Analista a1 = new Analista(apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estadoUsuario, localidad.findById(1924L));
+            Analista a1 = new Analista(apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estUsuDAO.findById(1L), null);
             AnalistaDAOImpl analista = new AnalistaDAOImpl();
             analista.create(a1);
             System.out.println("Analista creado");
@@ -446,8 +438,8 @@ public class Register extends javax.swing.JFrame {
     private void btnRegistrarseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarseActionPerformed
         try {
             registrarUsuario();
-        } catch (ServicioException ex) {
-            Logger.getLogger(Register.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NamingException | ServicioException ex) {
+            java.util.logging.Logger.getLogger(Register.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_btnRegistrarseActionPerformed
 
