@@ -1,6 +1,5 @@
 package com.fannog.proyectocliente;
 
-import com.fannog.proyectocliente.ui.analista.MenuAnalista;
 import com.fannog.proyectocliente.ui.login.Login;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.intellijthemes.FlatDarkPurpleIJTheme;
@@ -25,7 +24,7 @@ public class Main {
         }
 
         java.awt.EventQueue.invokeLater(() -> {
-            new MenuAnalista().setVisible(true);
+            new Login().setVisible(true);
         });
 
     }
