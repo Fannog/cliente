@@ -15,9 +15,9 @@ import com.fannog.proyectoservidor.entities.EstadoUsuario;
 import com.fannog.proyectoservidor.entities.Estudiante;
 import com.fannog.proyectoservidor.entities.Localidad;
 import com.fannog.proyectoservidor.entities.Tutor;
+import com.fannog.proyectoservidor.entities.Usuario;
 import com.fannog.proyectoservidor.exceptions.ServicioException;
 import java.awt.Component;
-import java.time.Year;
 import java.util.List;
 import javax.naming.NamingException;
 import javax.swing.DefaultComboBoxModel;
@@ -81,28 +81,29 @@ public class Register extends javax.swing.JFrame {
         Localidad localidad = (Localidad) comboLocalidad.getSelectedItem();
 
         UsuarioDAO usuarioDao = beanFactory.lookup("Usuario");
-        
+        Usuario usuario = null;
+
         if (esTutor) {
             String area = registerTutorForm1.getArea();
             String rol = registerTutorForm1.getRol();
 
-            Tutor t1 = new Tutor(area, rol, apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
-            usuarioDao.create(t1);
-
-            return;
+            usuario = new Tutor(area, rol, apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
         }
 
         if (esEstudiante) {
             Integer generacion = Integer.parseInt(registerEstudianteForm1.getAñoIngreso());
 
-            Estudiante e1 = new Estudiante(generacion, apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
-            usuarioDao.create(e1);
-
-            return;
+            usuario = new Estudiante(generacion, apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
         }
 
-        Analista a1 = new Analista(apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
-        usuarioDao.create(a1);
+        if (!esEstudiante && !esTutor) {
+            usuario = new Analista(apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
+        }
+        
+        usuarioDao.create(usuario);
+
+        JOptionPane.showMessageDialog(this, "Usuario registrado con éxito. Quedas a espera de verificación");
+
     }
 
     @SuppressWarnings("unchecked")
@@ -179,7 +180,7 @@ public class Register extends javax.swing.JFrame {
         lblTipoDeUsuario.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         lblTipoDeUsuario.setText("Tipo de usuario");
 
-        btnRegistrarse.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        btnRegistrarse.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         btnRegistrarse.setText("Registrarse");
         btnRegistrarse.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -188,7 +189,7 @@ public class Register extends javax.swing.JFrame {
         });
 
         comboTipoUsuario.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        comboTipoUsuario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Estudiante", "Tutor", "Analista" }));
+        comboTipoUsuario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ESTUDIANTE", "TUTOR", "ANALISTA" }));
         comboTipoUsuario.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 comboTipoUsuarioItemStateChanged(evt);
@@ -196,7 +197,7 @@ public class Register extends javax.swing.JFrame {
         });
 
         comboITR.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        comboITR.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Suroeste", "Centro-Sur", "Norte" }));
+        comboITR.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "SUROESTE", "CENTRO-SUR", "NORTE" }));
 
         lblITR.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         lblITR.setText("ITR");
