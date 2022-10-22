@@ -27,7 +27,7 @@ public class RegisterEstudianteForm extends javax.swing.JPanel {
         } catch (java.text.ParseException ex) {
             ex.printStackTrace();
         }
-        txtAñoIngreso.setFont(new java.awt.Font("Source Sans Pro", 0, 16)); // NOI18N
+        txtAñoIngreso.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

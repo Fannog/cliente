@@ -79,8 +79,8 @@
         </Property>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
           <StringArray count="2">
-            <StringItem index="0" value="Encargado"/>
-            <StringItem index="1" value="Tutor"/>
+            <StringItem index="0" value="ENCARGADO"/>
+            <StringItem index="1" value="TUTOR"/>
           </StringArray>
         </Property>
         <Property name="toolTipText" type="java.lang.String" value=""/>

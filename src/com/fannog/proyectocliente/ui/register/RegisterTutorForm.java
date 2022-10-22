@@ -42,7 +42,7 @@ public class RegisterTutorForm extends javax.swing.JPanel {
         lblRolTutor.setText("Rol del Tutor");
 
         comboRolTutor.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        comboRolTutor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Encargado", "Tutor" }));
+        comboRolTutor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ENCARGADO", "TUTOR" }));
         comboRolTutor.setToolTipText("");
         comboRolTutor.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
