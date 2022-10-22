@@ -1,125 +1,108 @@
 package com.fannog.proyectocliente.ui.register;
 
+import com.fannog.proyectocliente.utils.BeanFactory;
 import com.fannog.proyectocliente.utils.FieldUtils;
 import com.fannog.proyectocliente.utils.Validator;
+import com.fannog.proyectoservidor.DAO.AnalistaDAO;
 import com.fannog.proyectoservidor.DAO.DepartamentoDAO;
 import com.fannog.proyectoservidor.DAO.EstadoUsuarioDAO;
-import com.fannog.proyectoservidor.DAO.impl.AnalistaDAOImpl;
-import com.fannog.proyectoservidor.DAO.impl.EstudianteDAOImpl;
-import com.fannog.proyectoservidor.DAO.impl.TutorDAOImpl;
+import com.fannog.proyectoservidor.DAO.EstudianteDAO;
+import com.fannog.proyectoservidor.DAO.TutorDAO;
+import com.fannog.proyectoservidor.DAO.UsuarioDAO;
 import com.fannog.proyectoservidor.entities.Analista;
 import com.fannog.proyectoservidor.entities.Departamento;
+import com.fannog.proyectoservidor.entities.EstadoUsuario;
 import com.fannog.proyectoservidor.entities.Estudiante;
 import com.fannog.proyectoservidor.entities.Localidad;
 import com.fannog.proyectoservidor.entities.Tutor;
 import com.fannog.proyectoservidor.exceptions.ServicioException;
-import java.lang.System.Logger.Level;
+import java.awt.Component;
 import java.time.Year;
 import java.util.List;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import org.jboss.logging.Logger;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
 
 public class Register extends javax.swing.JFrame {
 
-    Validator validator = new Validator();
+    private BeanFactory beanFactory = BeanFactory.create();
+    private Validator validator = new Validator();
+    boolean esTutor = false;
+    boolean esEstudiante = true;
 
     public Register() {
         initComponents();
-        camposTipoUsuario();
-        llenarComboDepartamento();
+
+        showTipoUsuarioFields();
+        populateComboDepartamento();
     }
 
-    //LLENAR COMBOBOX CON TODOS LOS DEPARTAMENTOS
-    public void llenarComboDepartamento() {
-        try {
-            DepartamentoDAO depDAO = InitialContext.doLookup("ejb:ProyectoServidor/ProyectoEJB-ejb/DepartamentoDAOImpl!com.fannog.proyectoservidor.DAO.DepartamentoDAO");
+    public void populateComboDepartamento() {
+        DepartamentoDAO depDAO = beanFactory.lookup("Departamento");
 
-            List<Departamento> departamentos = depDAO.findAll();
-            List<Localidad> localidades = departamentos.get(comboDepartamento.getSelectedIndex()).getLocalidades();
-            
-            for (Departamento dep : departamentos) {
-                comboDepartamento.addItem(dep.getNombre());
-            }
-            
-            for (Localidad loc : localidades) {
-                comboLocalidad.addItem(loc.getNombre());
-            }
-        } catch (NamingException e) {
+        List<Departamento> departamentos = depDAO.findAllWithLocalidades();
 
-        }
+        comboDepartamento.setModel(new DefaultComboBoxModel(departamentos.toArray()));
+
+        departamentoChanged();
     }
 
-    /*
-    METODO PARA COMPROBAR TIPO DE USUARIO ESTA SELECCIONADO Y MODIFICAR
-    LA VENTANA DE REGISTRO EN FUNCION DE ESO
-     */
-    public void camposTipoUsuario() {
-        String selectedTipoUsuario = comboTipoUsuario.getSelectedItem().toString();
+    public void departamentoChanged() {
+        Departamento selectedDepartamento = (Departamento) comboDepartamento.getSelectedItem();
+        List<Localidad> localidades = selectedDepartamento.getLocalidades();
 
-        if (selectedTipoUsuario.equalsIgnoreCase("tutor")) {
-            registerEstudianteForm1.setVisible(false);
-            registerTutorForm1.setVisible(true);
-        } else if (selectedTipoUsuario.equalsIgnoreCase("estudiante")) {
-            registerEstudianteForm1.setVisible(true);
-            registerTutorForm1.setVisible(false);
-        } else {
-            registerEstudianteForm1.setVisible(false);
-            registerTutorForm1.setVisible(false);
-        }
-        //formTutor.setVisible(selectedTipoUsuario.equalsIgnoreCase("tutor"));
+        comboLocalidad.setModel(new DefaultComboBoxModel(localidades.toArray()));
     }
 
-    //METODO PARA REGISTRAR UN USUARIO AL SISTEMA
+    public void showTipoUsuarioFields() {
+        String selectedTipoUsuario = String.valueOf(comboTipoUsuario.getSelectedItem());
+        this.esTutor = selectedTipoUsuario.equalsIgnoreCase("tutor");
+        this.esEstudiante = selectedTipoUsuario.equalsIgnoreCase("estudiante");
+
+        registerEstudianteForm1.setVisible(esEstudiante);
+        registerTutorForm1.setVisible(esTutor);
+    }
+
     public void registrarUsuario() throws ServicioException, NamingException {
+        EstadoUsuarioDAO estUsuDAO = beanFactory.lookup("EstadoUsuario");
+        EstadoUsuario estado = estUsuDAO.findById(1L);
 
-        EstadoUsuarioDAO estUsuDAO = InitialContext.doLookup("ejb:ProyectoServidor/ProyectoEJB-ejb/EstadoUsuarioDAOImpl!com.fannog.DAO.EstadoUsuarioDAO");
+        String nombres = txtNombres.getText();
+        String apellidos = txtApellidos.getText();
+        String documento = txtDocumento.getText();
+        documento = validator.cleanCi(documento); //LIMPIANDO LOS CARACTERES . Y -
+        Long parsedDocumento = Long.parseLong(documento);
+        String email = txtEmail.getText();
+        Integer telefono = Integer.parseInt(txtTelefono.getText().replace(" ", ""));
+        String password = new String(txtPassword.getPassword());
+        String itr = comboITR.getSelectedItem().toString();
+        Localidad localidad = (Localidad) comboLocalidad.getSelectedItem();
 
-        //RECOPILACIÓN DE DATOS GENERICOS DE USUARIO
-        String nombresUsuario = txtNombres.getText();
-        String apellidosUsuario = txtApellidos.getText();
-        String docUser = txtDocumento.getText();
-        docUser = validator.cleanCi(docUser); //LIMPIANDO LOS CARACTERES . Y -
-        Long documentoUsuario = Long.parseLong(docUser);
-        String emailUsuario = txtEmail.getText();
-        String telUsuario = txtTelefono.getText().replace(" ", "");
-        Long telefonoUsuario = Long.parseLong(telUsuario);
-        String contraseñaUsuario = txtConstrasenia.getText();
-        String selectedTipoUsuario = comboTipoUsuario.getSelectedItem().toString();
-        String selectedITR = comboITR.getSelectedItem().toString();
-        String emailInstitucional = txtEmailInstitucional.getText();
-        String localidadUsuario = comboDepartamento.getSelectedItem().toString();
+        UsuarioDAO usuarioDao = beanFactory.lookup("Usuario");
+        
+        if (esTutor) {
+            String area = registerTutorForm1.getArea();
+            String rol = registerTutorForm1.getRol();
 
-        //CREACIÓN DE USUARIO DE TIPO TUTOR
-        if (selectedTipoUsuario.equalsIgnoreCase("tutor")) {
-            String areaTutor = registerTutorForm1.getArea();
-            String rolTutor = registerTutorForm1.getRol();
+            Tutor t1 = new Tutor(area, rol, apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
+            usuarioDao.create(t1);
 
-            Tutor t1 = new Tutor(areaTutor, rolTutor, apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estUsuDAO.findById(1L), null);
-            TutorDAOImpl tutor = new TutorDAOImpl();
-            tutor.create(t1);
-            System.out.println("Tutor creado");
-
-            //CREACIÓN DE USUARIO DE TIPO ESTUDIANTE
-        } else if (selectedTipoUsuario.equalsIgnoreCase("estudiante")) {
-            String añoIng = registerEstudianteForm1.getAñoIngreso();
-            int añoC = Integer.parseInt(añoIng);
-            Year y = Year.of(añoC);
-
-            Estudiante e1 = new Estudiante(y, apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estUsuDAO.findById(1L), null);
-            EstudianteDAOImpl estudiante = new EstudianteDAOImpl();
-            estudiante.create(e1);
-            System.out.println("Estudiante creado");
-
-            //CREACIÓN DE USUARIO DE TIPO ANALISTA
-        } else {
-
-            Analista a1 = new Analista(apellidosUsuario, documentoUsuario, emailInstitucional, emailUsuario, nombresUsuario, telefonoUsuario, contraseñaUsuario, estUsuDAO.findById(1L), null);
-            AnalistaDAOImpl analista = new AnalistaDAOImpl();
-            analista.create(a1);
-            System.out.println("Analista creado");
-
+            return;
         }
+
+        if (esEstudiante) {
+            Integer generacion = Integer.parseInt(registerEstudianteForm1.getAñoIngreso());
+
+            Estudiante e1 = new Estudiante(generacion, apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
+            usuarioDao.create(e1);
+
+            return;
+        }
+
+        Analista a1 = new Analista(apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
+        usuarioDao.create(a1);
     }
 
     @SuppressWarnings("unchecked")
@@ -136,7 +119,7 @@ public class Register extends javax.swing.JFrame {
         txtEmail = new javax.swing.JTextField();
         lblTelefono = new javax.swing.JLabel();
         lblConstrasenia = new javax.swing.JLabel();
-        txtConstrasenia = new javax.swing.JPasswordField();
+        txtPassword = new javax.swing.JPasswordField();
         lblTipoDeUsuario = new javax.swing.JLabel();
         btnRegistrarse = new javax.swing.JButton();
         comboTipoUsuario = new javax.swing.JComboBox<>();
@@ -146,8 +129,6 @@ public class Register extends javax.swing.JFrame {
         txtTelefono = new javax.swing.JFormattedTextField();
         registerEstudianteForm1 = new com.fannog.proyectocliente.ui.register.RegisterEstudianteForm();
         registerTutorForm1 = new com.fannog.proyectocliente.ui.register.RegisterTutorForm();
-        lblEmailInstitucinal = new javax.swing.JLabel();
-        txtEmailInstitucional = new javax.swing.JTextField();
         lblDepartamento = new javax.swing.JLabel();
         comboDepartamento = new javax.swing.JComboBox<>();
         comboLocalidad = new javax.swing.JComboBox<>();
@@ -160,11 +141,6 @@ public class Register extends javax.swing.JFrame {
         jLabel1.setText("Registrarse");
 
         txtNombres.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        txtNombres.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtNombresActionPerformed(evt);
-            }
-        });
         txtNombres.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 txtNombresKeyTyped(evt);
@@ -172,11 +148,6 @@ public class Register extends javax.swing.JFrame {
         });
 
         txtApellidos.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        txtApellidos.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtApellidosActionPerformed(evt);
-            }
-        });
         txtApellidos.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 txtApellidosKeyTyped(evt);
@@ -203,7 +174,7 @@ public class Register extends javax.swing.JFrame {
         lblConstrasenia.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         lblConstrasenia.setText("Contraseña");
 
-        txtConstrasenia.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
+        txtPassword.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
 
         lblTipoDeUsuario.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         lblTipoDeUsuario.setText("Tipo de usuario");
@@ -223,19 +194,9 @@ public class Register extends javax.swing.JFrame {
                 comboTipoUsuarioItemStateChanged(evt);
             }
         });
-        comboTipoUsuario.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboTipoUsuarioActionPerformed(evt);
-            }
-        });
 
         comboITR.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         comboITR.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Suroeste", "Centro-Sur", "Norte" }));
-        comboITR.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboITRActionPerformed(evt);
-            }
-        });
 
         lblITR.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         lblITR.setText("ITR");
@@ -245,40 +206,46 @@ public class Register extends javax.swing.JFrame {
         } catch (java.text.ParseException ex) {
             ex.printStackTrace();
         }
-        txtDocumento.setFont(new java.awt.Font("Source Sans Pro", 0, 16)); // NOI18N
+        txtDocumento.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
 
         try {
             txtTelefono.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.MaskFormatter("09# ### ###")));
         } catch (java.text.ParseException ex) {
             ex.printStackTrace();
         }
-        txtTelefono.setFont(new java.awt.Font("Source Sans Pro", 0, 16)); // NOI18N
-
-        lblEmailInstitucinal.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        lblEmailInstitucinal.setText("Email Institucional");
-
-        txtEmailInstitucional.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        txtEmailInstitucional.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtEmailInstitucionalActionPerformed(evt);
-            }
-        });
+        txtTelefono.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
 
         lblDepartamento.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         lblDepartamento.setText("Departamento");
 
         comboDepartamento.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        comboDepartamento.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboDepartamentoActionPerformed(evt);
+        comboDepartamento.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                comboDepartamentoItemStateChanged(evt);
+            }
+        });
+        comboDepartamento.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Departamento) {
+                    Departamento departamento = (Departamento) value;
+                    setText(departamento.getNombre());
+                }
+                return this;
             }
         });
 
         comboLocalidad.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        comboLocalidad.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Suroeste", "Centro-Sur", "Norte" }));
-        comboLocalidad.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboLocalidadActionPerformed(evt);
+        comboLocalidad.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Localidad) {
+                    Localidad localidad = (Localidad) value;
+                    setText(localidad.getNombre());
+                }
+                return this;
             }
         });
 
@@ -292,121 +259,110 @@ public class Register extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(42, 42, 42)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnRegistrarse, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(registerTutorForm1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(3, 3, 3)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(comboLocalidad, javax.swing.GroupLayout.PREFERRED_SIZE, 278, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lblLocalidad))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(registerEstudianteForm1, javax.swing.GroupLayout.PREFERRED_SIZE, 278, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(btnRegistrarse, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(comboTipoUsuario, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                            .addComponent(txtNombres)
-                                            .addComponent(txtDocumento)
-                                            .addComponent(txtTelefono)
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                    .addComponent(lblTelefono)
-                                                    .addComponent(lblDocumento)
-                                                    .addComponent(lblTipoDeUsuario)
-                                                    .addComponent(lblNombres))
-                                                .addGap(0, 0, Short.MAX_VALUE)))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED))
+                                        .addComponent(lblLocalidad, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addGap(156, 156, 156))
+                                    .addComponent(comboTipoUsuario, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(txtTelefono)
+                                    .addComponent(txtDocumento)
+                                    .addComponent(comboLocalidad, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(lblTelefono)
+                                    .addComponent(lblDocumento)
+                                    .addComponent(lblTipoDeUsuario)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(lblEmailInstitucinal)
-                                        .addGap(147, 147, 147)))
+                                        .addComponent(lblNombres, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addGap(219, 219, 219))
+                                    .addComponent(txtNombres))
+                                .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(txtApellidos)
                                     .addComponent(txtEmail)
-                                    .addComponent(comboITR, 0, 280, Short.MAX_VALUE)
-                                    .addComponent(txtConstrasenia)
+                                    .addComponent(txtPassword)
+                                    .addComponent(comboITR, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(comboDepartamento, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(txtApellidos, javax.swing.GroupLayout.Alignment.TRAILING)
                                     .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                             .addComponent(lblDepartamento)
-                                            .addComponent(lblApellidos)
                                             .addComponent(lblEmail)
                                             .addComponent(lblConstrasenia)
-                                            .addComponent(lblITR))
-                                        .addGap(0, 0, Short.MAX_VALUE))))
-                            .addComponent(registerTutorForm1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 571, Short.MAX_VALUE)
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addGap(0, 388, Short.MAX_VALUE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(txtEmailInstitucional, javax.swing.GroupLayout.PREFERRED_SIZE, 278, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(comboDepartamento, 0, 281, Short.MAX_VALUE)))
-                        .addGap(42, 42, 42))))
+                                            .addComponent(lblITR)
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(lblApellidos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addGap(39, 39, 39)))
+                                        .addGap(180, 180, 180))))
+                            .addComponent(registerEstudianteForm1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addGap(42, 42, 42))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(20, 20, 20)
-                .addComponent(jLabel1)
-                .addGap(30, 30, 30)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblNombres)
+                        .addComponent(jLabel1)
+                        .addGap(21, 21, 21)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblNombres)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(txtNombres, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblApellidos)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(txtApellidos, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtNombres, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblApellidos)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblEmail)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblDocumento)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(txtDocumento)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtApellidos, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(22, 22, 22)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblEmail)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblTelefono)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(txtTelefono))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblConstrasenia)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblDocumento)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblTipoDeUsuario)
+                                .addGap(12, 12, 12)
+                                .addComponent(comboTipoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblITR)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(comboITR, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtDocumento)))
-                .addGap(22, 22, 22)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblTelefono)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtTelefono))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblConstrasenia)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtConstrasenia, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(22, 22, 22)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblTipoDeUsuario)
-                        .addGap(12, 12, 12)
-                        .addComponent(comboTipoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblITR)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(comboITR, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblEmailInstitucinal)
-                    .addComponent(lblDepartamento))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtEmailInstitucional, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comboDepartamento, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(lblDepartamento)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboDepartamento, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(lblLocalidad)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(comboLocalidad, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(registerEstudianteForm1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(comboLocalidad, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(registerEstudianteForm1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(registerTutorForm1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
                 .addComponent(btnRegistrarse, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -415,31 +371,12 @@ public class Register extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void comboTipoUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboTipoUsuarioActionPerformed
-        camposTipoUsuario();
-    }//GEN-LAST:event_comboTipoUsuarioActionPerformed
-
-    private void comboITRActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboITRActionPerformed
-
-    }//GEN-LAST:event_comboITRActionPerformed
-
-    private void comboTipoUsuarioItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_comboTipoUsuarioItemStateChanged
-
-    }//GEN-LAST:event_comboTipoUsuarioItemStateChanged
-
-    private void txtNombresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNombresActionPerformed
-
-    }//GEN-LAST:event_txtNombresActionPerformed
-
-    private void txtApellidosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtApellidosActionPerformed
-
-    }//GEN-LAST:event_txtApellidosActionPerformed
-
     private void btnRegistrarseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarseActionPerformed
         try {
             registrarUsuario();
-        } catch (NamingException | ServicioException ex) {
-            java.util.logging.Logger.getLogger(Register.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (ServicioException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (NamingException ex) {
         }
     }//GEN-LAST:event_btnRegistrarseActionPerformed
 
@@ -451,17 +388,13 @@ public class Register extends javax.swing.JFrame {
         FieldUtils.esTexto(evt);
     }//GEN-LAST:event_txtApellidosKeyTyped
 
-    private void comboDepartamentoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboDepartamentoActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_comboDepartamentoActionPerformed
+    private void comboTipoUsuarioItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_comboTipoUsuarioItemStateChanged
+        showTipoUsuarioFields();
+    }//GEN-LAST:event_comboTipoUsuarioItemStateChanged
 
-    private void txtEmailInstitucionalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtEmailInstitucionalActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtEmailInstitucionalActionPerformed
-
-    private void comboLocalidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboLocalidadActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_comboLocalidadActionPerformed
+    private void comboDepartamentoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_comboDepartamentoItemStateChanged
+        departamentoChanged();
+    }//GEN-LAST:event_comboDepartamentoItemStateChanged
 
     public static void main(String args[]) {
 
@@ -471,7 +404,6 @@ public class Register extends javax.swing.JFrame {
                 new Register().setVisible(true);
             }
         });
-
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -486,7 +418,6 @@ public class Register extends javax.swing.JFrame {
     private javax.swing.JLabel lblDepartamento;
     private javax.swing.JLabel lblDocumento;
     private javax.swing.JLabel lblEmail;
-    private javax.swing.JLabel lblEmailInstitucinal;
     private javax.swing.JLabel lblITR;
     private javax.swing.JLabel lblLocalidad;
     private javax.swing.JLabel lblNombres;
@@ -495,11 +426,10 @@ public class Register extends javax.swing.JFrame {
     private com.fannog.proyectocliente.ui.register.RegisterEstudianteForm registerEstudianteForm1;
     private com.fannog.proyectocliente.ui.register.RegisterTutorForm registerTutorForm1;
     private javax.swing.JTextField txtApellidos;
-    private javax.swing.JPasswordField txtConstrasenia;
     private javax.swing.JFormattedTextField txtDocumento;
     private javax.swing.JTextField txtEmail;
-    private javax.swing.JTextField txtEmailInstitucional;
     private javax.swing.JTextField txtNombres;
+    private javax.swing.JPasswordField txtPassword;
     private javax.swing.JFormattedTextField txtTelefono;
     // End of variables declaration//GEN-END:variables
 

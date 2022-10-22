@@ -1,7 +1,5 @@
 package com.fannog.proyectocliente.ui.register;
 
-import java.util.Optional;
-
 public class RegisterEstudianteForm extends javax.swing.JPanel {
 
     public RegisterEstudianteForm() {
