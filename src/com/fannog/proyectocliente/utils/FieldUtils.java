@@ -12,5 +12,13 @@ public class FieldUtils {
         }
     }
     
+    public static void esTextoConPunto(java.awt.event.KeyEvent evt) {
+        Character c = evt.getKeyChar();
+
+        if (!Character.isLetter(c) && c != KeyEvent.VK_PERIOD) {
+            evt.consume();
+        }
+    }
+    
 
 }
