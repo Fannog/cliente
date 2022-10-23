@@ -5,8 +5,14 @@
 package com.fannog.proyectocliente.ui.analista;
 
 import com.fannog.proyectocliente.utils.BeanFactory;
+import com.fannog.proyectoservidor.DAO.AnalistaDAO;
 import com.fannog.proyectoservidor.DAO.EstudianteDAO;
+import com.fannog.proyectoservidor.DAO.TutorDAO;
+import com.fannog.proyectoservidor.DAO.UsuarioDAO;
+import com.fannog.proyectoservidor.entities.Analista;
 import com.fannog.proyectoservidor.entities.Estudiante;
+import com.fannog.proyectoservidor.entities.Tutor;
+import com.fannog.proyectoservidor.exceptions.ServicioException;
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -16,7 +22,7 @@ import javax.swing.table.DefaultTableModel;
  * @author Rodrigo
  */
 public class ListadoUsuarios extends javax.swing.JFrame {
-    
+
     private BeanFactory beanFactory = BeanFactory.create();
 
     /**
@@ -26,32 +32,71 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         initComponents();
         llenarTablaEstudiantes();
     }
-    
+
     public void llenarTablaEstudiantes() {
         EstudianteDAO estudDao = beanFactory.lookup("Estudiante");
         List<Estudiante> estudiantes = estudDao.findAll();
-        Object [] estu = new Object[8];
         DefaultTableModel modelo = (DefaultTableModel) tablaUsuarios.getModel();
-        
-        if(!estudiantes.isEmpty()) {    
-        for(Estudiante e : estudiantes) {
-            estu [0] = e.getNombres();
-            estu [1] = e.getApellidos();
-            estu [2] = e.getDocumento();
-            estu [3] = e.getNombreUsuario();
-            estu [4] = e.getTelefono();
-            estu [5] = e.getEmail();
-            estu [6] = e.getGeneracion();
-            
-            modelo.addRow(estu);
-        }
-        
-        tablaUsuarios.setModel(modelo);
+
+        if (!estudiantes.isEmpty()) {
+            for (Estudiante e : estudiantes) {
+
+                modelo.addRow(new Object[]{e.getNombres(), e.getApellidos(), e.getDocumento(), e.getNombreUsuario(), e.getTelefono(), e.getEmail(), e.getGeneracion()});
+            }
+
+            tablaUsuarios.setModel(modelo);
         } else {
             JOptionPane.showMessageDialog(this, "No hay usuarios estudiantes");
         }
     }
-    
+
+    public void llenarTablaTutor() {
+        TutorDAO tutorDAO = beanFactory.lookup("Tutor");
+        List<Tutor> tutores = tutorDAO.findAll();
+        DefaultTableModel modelo = (DefaultTableModel) tablaUsuarios.getModel();
+
+        if (!tutores.isEmpty()) {
+            for (Tutor t : tutores) {
+
+                modelo.addRow(new Object[]{t.getNombres(), t.getApellidos(), t.getDocumento(), t.getNombreUsuario(), t.getTelefono(), t.getEmail(), t.getArea()});
+            }
+
+            tablaUsuarios.setModel(modelo);
+        } else {
+            JOptionPane.showMessageDialog(this, "No hay usuarios tutores");
+        }
+    }
+
+    public void llenarTablaAnalista() {
+        AnalistaDAO analistaDAO = beanFactory.lookup("Analista");
+        List<Analista> analistas = analistaDAO.findAll();
+        DefaultTableModel modelo = (DefaultTableModel) tablaUsuarios.getModel();
+
+        if (!analistas.isEmpty()) {
+            for (Analista a : analistas) {
+
+                modelo.addRow(new Object[]{a.getNombres(), a.getApellidos(), a.getDocumento(), a.getNombreUsuario(), a.getTelefono(), a.getEmail()});
+            }
+
+            tablaUsuarios.setModel(modelo);
+        } else {
+            JOptionPane.showMessageDialog(this, "No hay usuarios tutores");
+        }
+    }
+
+    private void clearTable() {
+        DefaultTableModel tb = (DefaultTableModel) tablaUsuarios.getModel();
+        int a = tablaUsuarios.getRowCount()-1;
+        for (int i = a; i >= 0; i--) {          
+        tb.removeRow(tb.getRowCount()-1);
+        }
+    }
+
+    public void botonAltaEnabled() throws ServicioException {
+        UsuarioDAO usuarioDAO = beanFactory.lookup("Usuario");
+        usuarioDAO.findByNombreUsuario("");
+
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -96,6 +141,16 @@ public class ListadoUsuarios extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        tablaUsuarios.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tablaUsuariosMouseClicked(evt);
+            }
+        });
+        tablaUsuarios.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                tablaUsuariosKeyPressed(evt);
+            }
+        });
         jScrollPane1.setViewportView(tablaUsuarios);
 
         comboTipoUsuario.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
@@ -127,12 +182,15 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         });
 
         btnModificar.setText("Modificar");
+        btnModificar.setEnabled(false);
         btnModificar.setPreferredSize(new java.awt.Dimension(133, 31));
 
         btnAlta.setText("Alta");
+        btnAlta.setEnabled(false);
         btnAlta.setPreferredSize(new java.awt.Dimension(133, 31));
 
         btnBaja.setText("Baja");
+        btnBaja.setEnabled(false);
         btnBaja.setPreferredSize(new java.awt.Dimension(133, 31));
 
         btnAtras.setText("Atras");
@@ -201,6 +259,19 @@ public class ListadoUsuarios extends javax.swing.JFrame {
 
     private void comboTipoUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboTipoUsuarioActionPerformed
         // TODO add your handling code here:
+        boolean esEstudiante = comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("estudiantes");
+        boolean esTutor = comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("tutores");
+
+        if (esEstudiante) {
+            clearTable();
+            llenarTablaEstudiantes();
+        } else if (esTutor) {
+            clearTable();
+            llenarTablaTutor();
+        } else {
+            clearTable();
+            llenarTablaAnalista();
+        }
     }//GEN-LAST:event_comboTipoUsuarioActionPerformed
 
     private void comboFiltroUsuariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboFiltroUsuariosActionPerformed
@@ -210,6 +281,15 @@ public class ListadoUsuarios extends javax.swing.JFrame {
     private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField2ActionPerformed
+
+    private void tablaUsuariosKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tablaUsuariosKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tablaUsuariosKeyPressed
+
+    private void tablaUsuariosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tablaUsuariosMouseClicked
+        // TODO add your handling code here:
+
+    }//GEN-LAST:event_tablaUsuariosMouseClicked
 
     /**
      * @param args the command line arguments

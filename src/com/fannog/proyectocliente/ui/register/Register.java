@@ -201,6 +201,11 @@ public class Register extends javax.swing.JFrame {
                 comboTipoUsuarioItemStateChanged(evt);
             }
         });
+        comboTipoUsuario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboTipoUsuarioActionPerformed(evt);
+            }
+        });
 
         comboITR.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         comboITR.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "SUROESTE", "CENTRO-SUR", "NORTE" }));
@@ -402,6 +407,10 @@ public class Register extends javax.swing.JFrame {
     private void comboDepartamentoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_comboDepartamentoItemStateChanged
         departamentoChanged();
     }//GEN-LAST:event_comboDepartamentoItemStateChanged
+
+    private void comboTipoUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboTipoUsuarioActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_comboTipoUsuarioActionPerformed
 
     public static void main(String args[]) {
 
