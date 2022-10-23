@@ -73,7 +73,7 @@ public class Register extends javax.swing.JFrame {
         String apellidos = txtApellidos.getText();
         String documento = txtDocumento.getText();
         documento = validator.cleanCi(documento); //LIMPIANDO LOS CARACTERES . Y -
-        Long parsedDocumento = Long.parseLong(documento);
+//        Long parsedDocumento = Long.parseLong(documento);
         String email = txtEmail.getText();
         Integer telefono = Integer.parseInt(txtTelefono.getText().replace(" ", ""));
         String password = new String(txtPassword.getPassword());
@@ -87,17 +87,17 @@ public class Register extends javax.swing.JFrame {
             String area = registerTutorForm1.getArea();
             String rol = registerTutorForm1.getRol();
 
-            usuario = new Tutor(area, rol, apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
+            usuario = new Tutor(area, rol, apellidos, documento, email, nombres, telefono, password, estado, localidad);
         }
 
         if (esEstudiante) {
             Integer generacion = Integer.parseInt(registerEstudianteForm1.getAñoIngreso());
 
-            usuario = new Estudiante(generacion, apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
+            usuario = new Estudiante(generacion, apellidos, documento, email, nombres, telefono, password, estado, localidad);
         }
 
         if (!esEstudiante && !esTutor) {
-            usuario = new Analista(apellidos, parsedDocumento, email, nombres, telefono, password, estado, localidad);
+            usuario = new Analista(apellidos, documento, email, nombres, telefono, password, estado, localidad);
         }
         
         usuarioDao.create(usuario);
