@@ -1,5 +1,6 @@
 package com.fannog.proyectocliente.ui.register;
 
+import com.fannog.proyectocliente.ui.login.Login;
 import com.fannog.proyectocliente.utils.BeanFactory;
 import com.fannog.proyectocliente.utils.FieldUtils;
 import com.fannog.proyectocliente.utils.Validator;
@@ -103,6 +104,11 @@ public class Register extends javax.swing.JFrame {
         usuarioDao.create(usuario);
 
         JOptionPane.showMessageDialog(this, "Usuario registrado con éxito. Quedas a espera de verificación");
+        
+        dispose();
+        
+        Login login = new Login();
+        login.setVisible(true);
 
     }
 
