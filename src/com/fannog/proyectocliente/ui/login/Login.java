@@ -6,6 +6,7 @@ import com.fannog.proyectocliente.ui.register.Register;
 import com.fannog.proyectocliente.ui.tutor.MenuTutor;
 import com.fannog.proyectocliente.utils.BeanFactory;
 import com.fannog.proyectocliente.utils.FieldUtils;
+import com.fannog.proyectoservidor.DAO.EstudianteDAO;
 import com.fannog.proyectoservidor.DAO.UsuarioDAO;
 import com.fannog.proyectoservidor.exceptions.ServicioException;
 import javax.swing.JOptionPane;
@@ -13,40 +14,32 @@ import javax.swing.JOptionPane;
 public class Login extends javax.swing.JFrame {
 
     private BeanFactory beanFactory = BeanFactory.create();
-    boolean esTutor = false;
-    boolean esEstudiante = false;
-    boolean esAnalista = false;
 
     public Login() {
         initComponents();
     }
 
-//    public void showUsuarioRol(UsuarioDAO usuarioDAO) throws ServicioException {
-//        usuarioDAO = beanFactory.lookup("Usuario");
-//        String nombreUsuario = txtNombreUsuario.getText().trim();
-//        int rolUsuario = usuarioDAO.findByNombreUsuario(nombreUsuario).getRolUsuario();
-//
-//        switch (rolUsuario) {
-//            case 1 -> {
-//                MenuEstudiante menuEstudiante = new MenuEstudiante();
-//                this.esEstudiante = true;
-//                menuEstudiante.setVisible(esEstudiante);
-//            }
-//            case 2 -> {
-//                MenuTutor menuTutor = new MenuTutor();
-//                this.esTutor = true;
-//                menuTutor.setVisible(esTutor);
-//            }
-//            case 3 -> {
-//                MenuAnalista menuAnalista = new MenuAnalista();
-//                this.esAnalista = true;
-//                menuAnalista.setVisible(esAnalista);
-//            }
-//            default -> {
-//            }
-//        }
-//        
-//    }
+    public void showUsuarioRol(UsuarioDAO usuarioDAO) throws ServicioException {
+        usuarioDAO = beanFactory.lookup("Usuario");
+        String nombreUsuario = txtNombreUsuario.getText().trim();
+        
+        Long rolUsuario = usuarioDAO.findByNombreUsuario(nombreUsuario).getRolUsuario();
+        Long rolEstudiante = 1L;
+        Long rolTutor = 2L;
+        Long rolAnalista = 3L;
+        
+        if(rolUsuario == rolEstudiante) {
+            MenuEstudiante menuEstudiante = new MenuEstudiante();
+            menuEstudiante.setVisible(true);
+        } else if (rolUsuario == rolTutor){
+            MenuTutor menuTutor = new MenuTutor();
+            menuTutor.setVisible(true);
+        } else if (rolUsuario == rolAnalista) {
+            MenuAnalista menuAnalista = new MenuAnalista();
+            menuAnalista.setVisible(true);
+        }
+
+    }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -192,7 +185,7 @@ public class Login extends javax.swing.JFrame {
             usuarioDAO.login(nombreUsuario, password);
             dispose();
 
-//            showUsuarioRol(usuarioDAO);
+           showUsuarioRol(usuarioDAO);
         } catch (ServicioException e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Ha ocurrido un error", JOptionPane.ERROR_MESSAGE);
         }
