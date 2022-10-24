@@ -32,13 +32,49 @@ public class ListadoUsuarios extends javax.swing.JFrame {
 
     private BeanFactory beanFactory = BeanFactory.create();
     private TableRowSorter<DefaultTableModel> sorter;
+    private boolean esTutor = false;
+    private boolean esEstudiante = true;
 
     /**
      * Creates new form ListadoUsuarios
      */
     public ListadoUsuarios() {
         initComponents();
+        llenarComboFiltro();
+        llenarModeloTabla();
         llenarTablaEstudiantes();
+    }
+
+    public void llenarModeloTabla() {
+        String selectedTipoUsuario = String.valueOf(comboTipoUsuario.getSelectedItem());
+        this.esTutor = selectedTipoUsuario.equalsIgnoreCase("tutores");
+        this.esEstudiante = selectedTipoUsuario.equalsIgnoreCase("estudiantes");
+
+        DefaultTableModel modelo = (DefaultTableModel) tablaUsuarios.getModel();
+
+        modelo.addColumn("Nombres");
+        modelo.addColumn("Apellidos");
+        modelo.addColumn("Documento");
+        modelo.addColumn("Email");
+        modelo.addColumn("Teléfono");
+        modelo.addColumn("Departamento");
+        modelo.addColumn("Localidad");
+        modelo.addColumn("ITR");
+
+        if (esTutor) {
+            modelo.addColumn("Área");
+            modelo.addColumn("Rol");
+        }
+        if (esEstudiante) {
+            modelo.addColumn("Generación");
+        }
+
+    }
+
+    public void removerColumnas() {
+        
+        DefaultTableModel modelo = (DefaultTableModel) tablaUsuarios.getModel();
+        modelo.setColumnCount(0);
     }
 
     public void llenarTablaEstudiantes() {
@@ -130,8 +166,8 @@ public class ListadoUsuarios extends javax.swing.JFrame {
             EstadoUsuarioDAO estUsuDAO = beanFactory.lookup("EstadoUsuario");
 
             String nombreUsuario = (String) tablaUsuarios.getValueAt(tablaUsuarios.getSelectedRow(), 3);
-              Usuario usuario = usuarioDAO.findByNombreUsuario(nombreUsuario);
-              String estadoUsuario = estadoDeUsuario();
+            Usuario usuario = usuarioDAO.findByNombreUsuario(nombreUsuario);
+            String estadoUsuario = estadoDeUsuario();
 
             if (estadoUsuario.equalsIgnoreCase("Activo")) {
                 EstadoUsuario estado = estUsuDAO.findById(1L);
@@ -147,7 +183,7 @@ public class ListadoUsuarios extends javax.swing.JFrame {
 
         }
     }
-    
+
     public String estadoDeUsuario() {
         String nombreUsuario = (String) tablaUsuarios.getValueAt(tablaUsuarios.getSelectedRow(), 3);
         UsuarioDAO usuarioDAO = beanFactory.lookup("Usuario");
@@ -160,19 +196,43 @@ public class ListadoUsuarios extends javax.swing.JFrame {
                 estadoUsuario = u.getEstado().getNombre();
             }
         }
-        
+
         return estadoUsuario;
     }
-    
-    public void filtrarTabla(){
-        try{
-        int opcionFiltro = comboFiltroUsuarios.getSelectedIndex();
-        String textoFiltro = txtFiltro.getText();
-        
-        System.out.println(opcionFiltro);
-        System.out.println(textoFiltro);
-        sorter.setRowFilter(RowFilter.regexFilter(textoFiltro, opcionFiltro));
-        } catch(Exception e) {
+
+    public void filtrarTabla() {
+        try {
+            int opcionFiltro = comboFiltroUsuarios.getSelectedIndex();
+            String textoFiltro = txtFiltro.getText();
+
+            sorter.setRowFilter(RowFilter.regexFilter(textoFiltro, opcionFiltro));
+        } catch (Exception e) {
+        }
+    }
+
+    public void llenarComboFiltro() {
+
+        String selectedTipoUsuario = String.valueOf(comboTipoUsuario.getSelectedItem());
+        this.esTutor = selectedTipoUsuario.equalsIgnoreCase("tutores");
+        this.esEstudiante = selectedTipoUsuario.equalsIgnoreCase("estudiantes");
+
+        comboFiltroUsuarios.addItem("Nombres");
+        comboFiltroUsuarios.addItem("Apellidos");
+        comboFiltroUsuarios.addItem("Documento");
+        comboFiltroUsuarios.addItem("Email");
+        comboFiltroUsuarios.addItem("Teléfono");
+        comboFiltroUsuarios.addItem("Departamento");
+        comboFiltroUsuarios.addItem("Localidad");
+        comboFiltroUsuarios.addItem("ITR");
+
+        if (esTutor) {
+            comboFiltroUsuarios.addItem("Área");
+            comboFiltroUsuarios.addItem("Rol");
+
+        }
+        if (esEstudiante) {
+            comboFiltroUsuarios.addItem("Generación");
+
         }
     }
 
@@ -208,17 +268,9 @@ public class ListadoUsuarios extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Nombres", "Apellidos", "Documento", "Nombre de Usuario", "Teléfono", "Email", "Generacion"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false
-            };
 
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
             }
-        });
+        ));
         tablaUsuarios.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 tablaUsuariosMouseClicked(evt);
@@ -241,7 +293,6 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         lblFiltro.setText("Filtro:");
 
         comboFiltroUsuarios.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        comboFiltroUsuarios.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Nombres", "Apellidos", "Documento", "Nombre de Usuario", "Teléfono", "Email", "Generación" }));
         comboFiltroUsuarios.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboFiltroUsuariosActionPerformed(evt);
@@ -353,6 +404,11 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         // TODO add your handling code here:
         boolean esEstudiante = comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("estudiantes");
         boolean esTutor = comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("tutores");
+        
+        comboFiltroUsuarios.removeAllItems();
+        llenarComboFiltro();
+        removerColumnas();
+        llenarModeloTabla();
 
         if (esEstudiante) {
             clearTable();
