@@ -6,16 +6,23 @@ package com.fannog.proyectocliente.ui.analista;
 
 import com.fannog.proyectocliente.utils.BeanFactory;
 import com.fannog.proyectoservidor.DAO.AnalistaDAO;
+import com.fannog.proyectoservidor.DAO.EstadoUsuarioDAO;
 import com.fannog.proyectoservidor.DAO.EstudianteDAO;
 import com.fannog.proyectoservidor.DAO.TutorDAO;
 import com.fannog.proyectoservidor.DAO.UsuarioDAO;
 import com.fannog.proyectoservidor.entities.Analista;
+import com.fannog.proyectoservidor.entities.EstadoUsuario;
 import com.fannog.proyectoservidor.entities.Estudiante;
 import com.fannog.proyectoservidor.entities.Tutor;
+import com.fannog.proyectoservidor.entities.Usuario;
 import com.fannog.proyectoservidor.exceptions.ServicioException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
@@ -24,6 +31,7 @@ import javax.swing.table.DefaultTableModel;
 public class ListadoUsuarios extends javax.swing.JFrame {
 
     private BeanFactory beanFactory = BeanFactory.create();
+    private TableRowSorter<DefaultTableModel> sorter;
 
     /**
      * Creates new form ListadoUsuarios
@@ -45,6 +53,9 @@ public class ListadoUsuarios extends javax.swing.JFrame {
             }
 
             tablaUsuarios.setModel(modelo);
+            tablaUsuarios.setAutoCreateRowSorter(true);
+            sorter = new TableRowSorter<>(modelo);
+            tablaUsuarios.setRowSorter(sorter);
         } else {
             JOptionPane.showMessageDialog(this, "No hay usuarios estudiantes");
         }
@@ -62,6 +73,9 @@ public class ListadoUsuarios extends javax.swing.JFrame {
             }
 
             tablaUsuarios.setModel(modelo);
+            tablaUsuarios.setAutoCreateRowSorter(true);
+            sorter = new TableRowSorter<>(modelo);
+            tablaUsuarios.setRowSorter(sorter);
         } else {
             JOptionPane.showMessageDialog(this, "No hay usuarios tutores");
         }
@@ -79,6 +93,9 @@ public class ListadoUsuarios extends javax.swing.JFrame {
             }
 
             tablaUsuarios.setModel(modelo);
+            tablaUsuarios.setAutoCreateRowSorter(true);
+            sorter = new TableRowSorter<>(modelo);
+            tablaUsuarios.setRowSorter(sorter);
         } else {
             JOptionPane.showMessageDialog(this, "No hay usuarios tutores");
         }
@@ -86,16 +103,77 @@ public class ListadoUsuarios extends javax.swing.JFrame {
 
     private void clearTable() {
         DefaultTableModel tb = (DefaultTableModel) tablaUsuarios.getModel();
-        int a = tablaUsuarios.getRowCount()-1;
-        for (int i = a; i >= 0; i--) {          
-        tb.removeRow(tb.getRowCount()-1);
+        int a = tablaUsuarios.getRowCount() - 1;
+        for (int i = a; i >= 0; i--) {
+            tb.removeRow(tb.getRowCount() - 1);
         }
     }
 
-    public void botonAltaEnabled() throws ServicioException {
-        UsuarioDAO usuarioDAO = beanFactory.lookup("Usuario");
-        usuarioDAO.findByNombreUsuario("");
+    public void botonAltaBajaEnabled() throws ServicioException {
+        String estadoUsuario = estadoDeUsuario();
 
+        if (estadoUsuario.equalsIgnoreCase("Activo")) {
+            btnAlta.setEnabled(false);
+            btnBaja.setEnabled(true);
+        } else if (estadoUsuario.equalsIgnoreCase("Sin Activar")) {
+            btnAlta.setEnabled(true);
+            btnBaja.setEnabled(false);
+        } else {
+            btnAlta.setEnabled(false);
+            btnBaja.setEnabled(false);
+        }
+    }
+
+    public void setEstadoUsuario() {
+        try {
+            UsuarioDAO usuarioDAO = beanFactory.lookup("Usuario");
+            EstadoUsuarioDAO estUsuDAO = beanFactory.lookup("EstadoUsuario");
+
+            String nombreUsuario = (String) tablaUsuarios.getValueAt(tablaUsuarios.getSelectedRow(), 3);
+              Usuario usuario = usuarioDAO.findByNombreUsuario(nombreUsuario);
+              String estadoUsuario = estadoDeUsuario();
+
+            if (estadoUsuario.equalsIgnoreCase("Activo")) {
+                EstadoUsuario estado = estUsuDAO.findById(1L);
+                usuario.setEstado(estado);
+                usuarioDAO.edit(usuario);
+            } else {
+                EstadoUsuario estado = estUsuDAO.findById(2L);
+                usuario.setEstado(estado);
+                usuarioDAO.edit(usuario);
+            }
+
+        } catch (ServicioException e) {
+
+        }
+    }
+    
+    public String estadoDeUsuario() {
+        String nombreUsuario = (String) tablaUsuarios.getValueAt(tablaUsuarios.getSelectedRow(), 3);
+        UsuarioDAO usuarioDAO = beanFactory.lookup("Usuario");
+        List<Usuario> usuarios = usuarioDAO.findAllWithEstadosUsuario();
+
+        String estadoUsuario = "";
+
+        for (Usuario u : usuarios) {
+            if (nombreUsuario.equalsIgnoreCase(u.getNombreUsuario())) {
+                estadoUsuario = u.getEstado().getNombre();
+            }
+        }
+        
+        return estadoUsuario;
+    }
+    
+    public void filtrarTabla(){
+        try{
+        int opcionFiltro = comboFiltroUsuarios.getSelectedIndex();
+        String textoFiltro = txtFiltro.getText();
+        
+        System.out.println(opcionFiltro);
+        System.out.println(textoFiltro);
+        sorter.setRowFilter(RowFilter.regexFilter(textoFiltro, opcionFiltro));
+        } catch(Exception e) {
+        }
     }
 
     /**
@@ -114,7 +192,7 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         lblFiltro = new javax.swing.JLabel();
         comboFiltroUsuarios = new javax.swing.JComboBox<>();
-        jTextField2 = new javax.swing.JTextField();
+        txtFiltro = new javax.swing.JTextField();
         btnModificar = new javax.swing.JButton();
         btnAlta = new javax.swing.JButton();
         btnBaja = new javax.swing.JButton();
@@ -146,11 +224,6 @@ public class ListadoUsuarios extends javax.swing.JFrame {
                 tablaUsuariosMouseClicked(evt);
             }
         });
-        tablaUsuarios.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                tablaUsuariosKeyPressed(evt);
-            }
-        });
         jScrollPane1.setViewportView(tablaUsuarios);
 
         comboTipoUsuario.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
@@ -175,9 +248,14 @@ public class ListadoUsuarios extends javax.swing.JFrame {
             }
         });
 
-        jTextField2.addActionListener(new java.awt.event.ActionListener() {
+        txtFiltro.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField2ActionPerformed(evt);
+                txtFiltroActionPerformed(evt);
+            }
+        });
+        txtFiltro.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtFiltroKeyReleased(evt);
             }
         });
 
@@ -188,10 +266,20 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         btnAlta.setText("Alta");
         btnAlta.setEnabled(false);
         btnAlta.setPreferredSize(new java.awt.Dimension(133, 31));
+        btnAlta.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnAltaMouseClicked(evt);
+            }
+        });
 
         btnBaja.setText("Baja");
         btnBaja.setEnabled(false);
         btnBaja.setPreferredSize(new java.awt.Dimension(133, 31));
+        btnBaja.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnBajaMouseClicked(evt);
+            }
+        });
 
         btnAtras.setText("Atras");
         btnAtras.setPreferredSize(new java.awt.Dimension(133, 31));
@@ -225,7 +313,7 @@ public class ListadoUsuarios extends javax.swing.JFrame {
                                 .addGap(18, 18, 18)
                                 .addComponent(comboFiltroUsuarios, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
-                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(txtFiltro, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 837, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(30, Short.MAX_VALUE))
         );
@@ -234,16 +322,20 @@ public class ListadoUsuarios extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblFiltro, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comboFiltroUsuarios, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(comboTipoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblFiltro, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(10, 10, 10))
-                    .addComponent(comboTipoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(28, 28, 28)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(txtFiltro)
+                            .addComponent(comboFiltroUsuarios))
+                        .addGap(14, 14, 14)))
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 470, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -278,18 +370,38 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_comboFiltroUsuariosActionPerformed
 
-    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
+    private void txtFiltroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtFiltroActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField2ActionPerformed
-
-    private void tablaUsuariosKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tablaUsuariosKeyPressed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_tablaUsuariosKeyPressed
+    }//GEN-LAST:event_txtFiltroActionPerformed
 
     private void tablaUsuariosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tablaUsuariosMouseClicked
         // TODO add your handling code here:
-
+        btnModificar.setEnabled(true);
+        try {
+            botonAltaBajaEnabled();
+        } catch (ServicioException ex) {
+            Logger.getLogger(ListadoUsuarios.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_tablaUsuariosMouseClicked
+
+    private void btnAltaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAltaMouseClicked
+        // TODO add your handling code here:
+        setEstadoUsuario();
+        tablaUsuarios.clearSelection();
+        btnAlta.setEnabled(false);
+    }//GEN-LAST:event_btnAltaMouseClicked
+
+    private void btnBajaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnBajaMouseClicked
+        // TODO add your handling code here:
+        setEstadoUsuario();
+        tablaUsuarios.clearSelection();
+        btnBaja.setEnabled(false);
+    }//GEN-LAST:event_btnBajaMouseClicked
+
+    private void txtFiltroKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFiltroKeyReleased
+        // TODO add your handling code here:
+        filtrarTabla();
+    }//GEN-LAST:event_txtFiltroKeyReleased
 
     /**
      * @param args the command line arguments
@@ -336,8 +448,8 @@ public class ListadoUsuarios extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField jTextField2;
     private javax.swing.JLabel lblFiltro;
     private javax.swing.JTable tablaUsuarios;
+    private javax.swing.JTextField txtFiltro;
     // End of variables declaration//GEN-END:variables
 }
