@@ -1,6 +1,7 @@
 package com.fannog.proyectocliente.utils;
 
 import com.fannog.proyectoservidor.entities.Usuario;
+import java.time.format.DateTimeFormatter;
 
 public class Globals {
 
@@ -13,5 +14,7 @@ public class Globals {
     public static void setLoggedUser(Usuario loggedUser) {
         Globals.loggedUser = loggedUser;
     }
+
+    public static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyy HH:mm");
 
 }
