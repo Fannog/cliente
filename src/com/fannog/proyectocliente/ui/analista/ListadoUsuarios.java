@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package com.fannog.proyectocliente.ui.analista;
 
 import com.fannog.proyectocliente.utils.BeanFactory;
@@ -24,25 +20,21 @@ import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
-/**
- *
- * @author Rodrigo
- */
 public class ListadoUsuarios extends javax.swing.JFrame {
 
-    private BeanFactory beanFactory = BeanFactory.create();
     private TableRowSorter<DefaultTableModel> sorter;
     private boolean esTutor = false;
     private boolean esEstudiante = true;
 
-    /**
-     * Creates new form ListadoUsuarios
-     */
     public ListadoUsuarios() {
         initComponents();
-        llenarComboFiltro();
-        llenarModeloTabla();
-        llenarTablaEstudiantes();
+
+        try {
+            llenarComboFiltro();
+            llenarModeloTabla();
+            llenarTablaEstudiantes();
+        } catch (Exception ex) {
+        }
     }
 
     public void llenarModeloTabla() {
@@ -72,13 +64,13 @@ public class ListadoUsuarios extends javax.swing.JFrame {
     }
 
     public void removerColumnas() {
-        
+
         DefaultTableModel modelo = (DefaultTableModel) tablaUsuarios.getModel();
         modelo.setColumnCount(0);
     }
 
-    public void llenarTablaEstudiantes() {
-        EstudianteDAO estudDao = beanFactory.lookup("Estudiante");
+    public void llenarTablaEstudiantes() throws Exception {
+        EstudianteDAO estudDao = BeanFactory.local().lookup("Estudiante");
         List<Estudiante> estudiantes = estudDao.findAll();
         DefaultTableModel modelo = (DefaultTableModel) tablaUsuarios.getModel();
 
@@ -97,8 +89,8 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         }
     }
 
-    public void llenarTablaTutor() {
-        TutorDAO tutorDAO = beanFactory.lookup("Tutor");
+    public void llenarTablaTutor() throws Exception {
+        TutorDAO tutorDAO = BeanFactory.local().lookup("Tutor");
         List<Tutor> tutores = tutorDAO.findAll();
         DefaultTableModel modelo = (DefaultTableModel) tablaUsuarios.getModel();
 
@@ -117,8 +109,8 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         }
     }
 
-    public void llenarTablaAnalista() {
-        AnalistaDAO analistaDAO = beanFactory.lookup("Analista");
+    public void llenarTablaAnalista() throws Exception {
+        AnalistaDAO analistaDAO = BeanFactory.local().lookup("Analista");
         List<Analista> analistas = analistaDAO.findAll();
         DefaultTableModel modelo = (DefaultTableModel) tablaUsuarios.getModel();
 
@@ -145,7 +137,7 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         }
     }
 
-    public void botonAltaBajaEnabled() throws ServicioException {
+    public void botonAltaBajaEnabled() throws ServicioException, Exception {
         String estadoUsuario = estadoDeUsuario();
 
         if (estadoUsuario.equalsIgnoreCase("Activo")) {
@@ -160,10 +152,10 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         }
     }
 
-    public void setEstadoUsuario() {
+    public void setEstadoUsuario() throws Exception {
         try {
-            UsuarioDAO usuarioDAO = beanFactory.lookup("Usuario");
-            EstadoUsuarioDAO estUsuDAO = beanFactory.lookup("EstadoUsuario");
+            UsuarioDAO usuarioDAO = BeanFactory.local().lookup("Usuario");
+            EstadoUsuarioDAO estUsuDAO = BeanFactory.local().lookup("EstadoUsuario");
 
             String nombreUsuario = (String) tablaUsuarios.getValueAt(tablaUsuarios.getSelectedRow(), 3);
             Usuario usuario = usuarioDAO.findByNombreUsuario(nombreUsuario);
@@ -184,9 +176,9 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         }
     }
 
-    public String estadoDeUsuario() {
+    public String estadoDeUsuario() throws Exception {
         String nombreUsuario = (String) tablaUsuarios.getValueAt(tablaUsuarios.getSelectedRow(), 3);
-        UsuarioDAO usuarioDAO = beanFactory.lookup("Usuario");
+        UsuarioDAO usuarioDAO = BeanFactory.local().lookup("Usuario");
         List<Usuario> usuarios = usuarioDAO.findAllWithEstadosUsuario();
 
         String estadoUsuario = "";
@@ -404,7 +396,7 @@ public class ListadoUsuarios extends javax.swing.JFrame {
         // TODO add your handling code here:
         boolean esEstudiante = comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("estudiantes");
         boolean esTutor = comboTipoUsuario.getSelectedItem().toString().equalsIgnoreCase("tutores");
-        
+
         comboFiltroUsuarios.removeAllItems();
         llenarComboFiltro();
         removerColumnas();
@@ -412,13 +404,25 @@ public class ListadoUsuarios extends javax.swing.JFrame {
 
         if (esEstudiante) {
             clearTable();
-            llenarTablaEstudiantes();
+            try {
+                llenarTablaEstudiantes();
+            } catch (Exception ex) {
+                Logger.getLogger(ListadoUsuarios.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } else if (esTutor) {
             clearTable();
-            llenarTablaTutor();
+            try {
+                llenarTablaTutor();
+            } catch (Exception ex) {
+                Logger.getLogger(ListadoUsuarios.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } else {
             clearTable();
-            llenarTablaAnalista();
+            try {
+                llenarTablaAnalista();
+            } catch (Exception ex) {
+                Logger.getLogger(ListadoUsuarios.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }//GEN-LAST:event_comboTipoUsuarioActionPerformed
 
@@ -437,19 +441,29 @@ public class ListadoUsuarios extends javax.swing.JFrame {
             botonAltaBajaEnabled();
         } catch (ServicioException ex) {
             Logger.getLogger(ListadoUsuarios.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(ListadoUsuarios.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_tablaUsuariosMouseClicked
 
     private void btnAltaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAltaMouseClicked
-        // TODO add your handling code here:
-        setEstadoUsuario();
+        try {
+            // TODO add your handling code here:
+            setEstadoUsuario();
+        } catch (Exception ex) {
+            Logger.getLogger(ListadoUsuarios.class.getName()).log(Level.SEVERE, null, ex);
+        }
         tablaUsuarios.clearSelection();
         btnAlta.setEnabled(false);
     }//GEN-LAST:event_btnAltaMouseClicked
 
     private void btnBajaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnBajaMouseClicked
-        // TODO add your handling code here:
-        setEstadoUsuario();
+        try {
+            // TODO add your handling code here:
+            setEstadoUsuario();
+        } catch (Exception ex) {
+            Logger.getLogger(ListadoUsuarios.class.getName()).log(Level.SEVERE, null, ex);
+        }
         tablaUsuarios.clearSelection();
         btnBaja.setEnabled(false);
     }//GEN-LAST:event_btnBajaMouseClicked
