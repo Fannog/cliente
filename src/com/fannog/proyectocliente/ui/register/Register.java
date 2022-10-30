@@ -4,16 +4,15 @@ import com.fannog.proyectocliente.ui.login.Login;
 import com.fannog.proyectocliente.utils.BeanFactory;
 import com.fannog.proyectocliente.utils.FieldUtils;
 import com.fannog.proyectocliente.utils.Validator;
-import com.fannog.proyectoservidor.DAO.AnalistaDAO;
 import com.fannog.proyectoservidor.DAO.DepartamentoDAO;
 import com.fannog.proyectoservidor.DAO.EstadoUsuarioDAO;
-import com.fannog.proyectoservidor.DAO.EstudianteDAO;
-import com.fannog.proyectoservidor.DAO.TutorDAO;
+import com.fannog.proyectoservidor.DAO.ItrDAO;
 import com.fannog.proyectoservidor.DAO.UsuarioDAO;
 import com.fannog.proyectoservidor.entities.Analista;
 import com.fannog.proyectoservidor.entities.Departamento;
 import com.fannog.proyectoservidor.entities.EstadoUsuario;
 import com.fannog.proyectoservidor.entities.Estudiante;
+import com.fannog.proyectoservidor.entities.Itr;
 import com.fannog.proyectoservidor.entities.Localidad;
 import com.fannog.proyectoservidor.entities.Tutor;
 import com.fannog.proyectoservidor.entities.Usuario;
@@ -23,12 +22,12 @@ import java.util.List;
 import javax.naming.NamingException;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 
-public class Register extends javax.swing.JFrame {
+public class Register extends JFrame {
 
-    private BeanFactory beanFactory = BeanFactory.create();
     private Validator validator = new Validator();
     boolean esTutor = false;
     boolean esEstudiante = true;
@@ -37,11 +36,16 @@ public class Register extends javax.swing.JFrame {
         initComponents();
 
         showTipoUsuarioFields();
-        populateComboDepartamento();
+
+        try {
+            populateComboDepartamento();
+            populateComboITR();
+        } catch (Exception ex) {
+        }
     }
 
-    public void populateComboDepartamento() {
-        DepartamentoDAO depDAO = beanFactory.lookup("Departamento");
+    private void populateComboDepartamento() throws Exception {
+        DepartamentoDAO depDAO = BeanFactory.local().lookup("Departamento");
 
         List<Departamento> departamentos = depDAO.findAllWithLocalidades();
 
@@ -57,7 +61,15 @@ public class Register extends javax.swing.JFrame {
         comboLocalidad.setModel(new DefaultComboBoxModel(localidades.toArray()));
     }
 
-    public void showTipoUsuarioFields() {
+    private void populateComboITR() throws Exception {
+        ItrDAO itrDAO = BeanFactory.local().lookup("Itr");
+
+        List<Itr> itrs = itrDAO.findAll();
+
+        comboITR.setModel(new DefaultComboBoxModel(itrs.toArray()));
+    }
+
+    private void showTipoUsuarioFields() {
         String selectedTipoUsuario = String.valueOf(comboTipoUsuario.getSelectedItem());
         this.esTutor = selectedTipoUsuario.equalsIgnoreCase("tutor");
         this.esEstudiante = selectedTipoUsuario.equalsIgnoreCase("estudiante");
@@ -66,50 +78,82 @@ public class Register extends javax.swing.JFrame {
         registerTutorForm1.setVisible(esTutor);
     }
 
-    public void registrarUsuario() throws ServicioException, NamingException {
-        EstadoUsuarioDAO estUsuDAO = beanFactory.lookup("EstadoUsuario");
+    private void handleSubmit() throws ServicioException, NamingException, Exception {
+        EstadoUsuarioDAO estUsuDAO = BeanFactory.local().lookup("EstadoUsuario");
         EstadoUsuario estado = estUsuDAO.findById(1L);
 
         String nombres = txtNombres.getText();
         String apellidos = txtApellidos.getText();
         String documento = txtDocumento.getText();
-        documento = validator.cleanCi(documento); //LIMPIANDO LOS CARACTERES . Y -
-//        Long parsedDocumento = Long.parseLong(documento);
+        documento = validator.cleanCi(documento);
         String email = txtEmail.getText();
         Integer telefono = Integer.parseInt(txtTelefono.getText().replace(" ", ""));
         String password = new String(txtPassword.getPassword());
-        String itr = comboITR.getSelectedItem().toString();
+        Itr itr = (Itr) comboITR.getSelectedItem();
         Localidad localidad = (Localidad) comboLocalidad.getSelectedItem();
 
-        UsuarioDAO usuarioDao = beanFactory.lookup("Usuario");
+        UsuarioDAO usuarioDao = BeanFactory.local().lookup("Usuario");
+
+        Usuario usuario = handleUserType(nombres, apellidos, documento, email, telefono, password, estado, localidad, itr);
+
+        validate(password, email, telefono);
+
+        usuarioDao.create(usuario);
+
+        JOptionPane.showMessageDialog(this, "Usuario registrado con éxito. Quedas a espera de verificación");
+
+        dispose();
+
+        Login login = new Login();
+        login.setVisible(true);
+
+    }
+
+    private Usuario handleUserType(String nombres, String apellidos, String documento, String email, Integer telefono, String password, EstadoUsuario estado, Localidad localidad, Itr itr) {
         Usuario usuario = null;
 
         if (esTutor) {
             String area = registerTutorForm1.getArea();
             String rol = registerTutorForm1.getRol();
 
-            usuario = new Tutor(area, rol, apellidos, documento, email, nombres, telefono, password, estado, localidad, 2L);
+            usuario = new Tutor(area, rol, apellidos, documento, email, nombres, telefono, password, estado, localidad, itr, 2L);
         }
 
         if (esEstudiante) {
             Integer generacion = Integer.parseInt(registerEstudianteForm1.getAñoIngreso());
 
-            usuario = new Estudiante(generacion, apellidos, documento, email, nombres, telefono, password, estado, localidad, 1L);
+            usuario = new Estudiante(generacion, apellidos, documento, email, nombres, telefono, password, estado, localidad, itr, 1L);
         }
 
         if (!esEstudiante && !esTutor) {
-            usuario = new Analista(apellidos, documento, email, nombres, telefono, password, estado, localidad, 3L);
+            usuario = new Analista(apellidos, documento, email, nombres, telefono, password, estado, localidad, itr, 3L);
         }
-        
-        usuarioDao.create(usuario);
 
-        JOptionPane.showMessageDialog(this, "Usuario registrado con éxito. Quedas a espera de verificación");
-        
-        dispose();
-        
-        Login login = new Login();
-        login.setVisible(true);
+        return usuario;
+    }
 
+    private void validate(String password, String email, Integer telefono) throws ServicioException {
+        int length = String.valueOf(telefono).length();
+
+        if (length != 8) {
+            throw new ServicioException("El teléfono debe tener formato 09XXXXXXX");
+        }
+
+        if (password.isBlank() || password.length() < 4 || password.length() > 20) {
+            throw new ServicioException("La constaseña debe tener entre 4 y 20 caracteres");
+        }
+
+        if (esTutor) {
+            if (!email.contains("@utec.edu.uy")) {
+                throw new ServicioException("El email debe tener formato @utec.edu.uy");
+            }
+        }
+
+        if (esEstudiante) {
+            if (!email.contains("@estudiantes.utec.edu.uy")) {
+                throw new ServicioException("El email debe tener formato @estudiantes.utec.edu.uy");
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -143,6 +187,7 @@ public class Register extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Registrarse");
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         jLabel1.setFont(new java.awt.Font("Source Serif Pro Black", 0, 36)); // NOI18N
         jLabel1.setText("Registrarse");
@@ -208,7 +253,17 @@ public class Register extends javax.swing.JFrame {
         });
 
         comboITR.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        comboITR.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "SUROESTE", "CENTRO-SUR", "NORTE" }));
+        comboITR.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Itr) {
+                    Itr itr = (Itr) value;
+                    setText(itr.getNombre());
+                }
+                return this;
+            }
+        });
 
         lblITR.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         lblITR.setText("ITR");
@@ -231,11 +286,6 @@ public class Register extends javax.swing.JFrame {
         lblDepartamento.setText("Departamento");
 
         comboDepartamento.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
-        comboDepartamento.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                comboDepartamentoItemStateChanged(evt);
-            }
-        });
         comboDepartamento.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -245,6 +295,11 @@ public class Register extends javax.swing.JFrame {
                     setText(departamento.getNombre());
                 }
                 return this;
+            }
+        });
+        comboDepartamento.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                comboDepartamentoItemStateChanged(evt);
             }
         });
 
@@ -379,16 +434,17 @@ public class Register extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        pack();
+        setSize(new java.awt.Dimension(700, 769));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnRegistrarseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarseActionPerformed
         try {
-            registrarUsuario();
+            handleSubmit();
         } catch (ServicioException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (NamingException ex) {
+        } catch (Exception ex) {
         }
     }//GEN-LAST:event_btnRegistrarseActionPerformed
 
@@ -409,18 +465,9 @@ public class Register extends javax.swing.JFrame {
     }//GEN-LAST:event_comboDepartamentoItemStateChanged
 
     private void comboTipoUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboTipoUsuarioActionPerformed
-        // TODO add your handling code here:
+
     }//GEN-LAST:event_comboTipoUsuarioActionPerformed
 
-    public static void main(String args[]) {
-
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new Register().setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnRegistrarse;

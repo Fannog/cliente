@@ -4,11 +4,14 @@ import com.fannog.proyectocliente.ui.login.Login;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.intellijthemes.FlatDarkPurpleIJTheme;
 import java.awt.Color;
+import java.awt.Font;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.text.StyleContext;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         try {
             UIManager.setLookAndFeel(new FlatDarkPurpleIJTheme());
             UIManager.put("Button.arc", 10);
@@ -17,10 +20,15 @@ public class Main {
             UIManager.put("OptionPane.yesButtonText", "Si");
             UIManager.put("OptionPane.noButtonText", "No");
 
-            Color color = UIManager.getColor("ProgressBar.foreground");
-            FlatSVGIcon.ColorFilter.getInstance().add(Color.BLACK, color);
-        } catch (Exception ex) {
-            System.err.println("Failed to initialize LaF");
+            Font font = StyleContext.getDefaultStyleContext().getFont("Source Sans Pro", Font.PLAIN, 16);
+            UIManager.put("defaultFont", font);
+
+            Color svgColor = UIManager.getColor("ProgressBar.foreground");
+            FlatSVGIcon.ColorFilter.getInstance().add(Color.BLACK, svgColor);
+
+            Color rowColor = UIManager.getColor("ComboBox.background");
+            UIManager.put("Table.alternateRowColor", rowColor);
+        } catch (UnsupportedLookAndFeelException ex) {
         }
 
         java.awt.EventQueue.invokeLater(() -> {

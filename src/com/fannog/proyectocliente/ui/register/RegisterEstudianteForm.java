@@ -1,37 +1,29 @@
 package com.fannog.proyectocliente.ui.register;
 
-import com.fannog.proyectoservidor.DAO.DepartamentoDAO;
-import com.fannog.proyectoservidor.entities.Departamento;
 import java.time.LocalDate;
-import java.util.List;
-import javax.swing.DefaultComboBoxModel;
 
 public class RegisterEstudianteForm extends javax.swing.JPanel {
 
     public RegisterEstudianteForm() {
         initComponents();
+        
         populateComboGeneracion();
     }
 
     public String getAñoIngreso() {
-       return comboGeneracion.getSelectedItem().toString();
-        
-    }
-    
-    public void populateComboGeneracion() {
+        return comboGeneracion.getSelectedItem().toString();
 
-        //List<String> generaciones = null;
+    }
+
+    private void populateComboGeneracion() {
+
         LocalDate current_date = LocalDate.now();
         int current_Year = current_date.getYear();
-        
-        for(int i = 2012; i <= current_Year; i++ ){
-            String año = String.valueOf(i);
-            comboGeneracion.addItem(año);
-            //generaciones.add(año);
-        }
-        
-        //comboGeneracion.setModel(new DefaultComboBoxModel(generaciones.toArray()));
 
+        for (int i = 2012; i <= current_Year; i++) {
+            String year = String.valueOf(i);
+            comboGeneracion.addItem(year);
+        }
     }
 
     @SuppressWarnings("unchecked")

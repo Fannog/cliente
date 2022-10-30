@@ -1,5 +1,8 @@
 package com.fannog.proyectocliente.ui.analista;
 
+import com.docmosis.SystemManager;
+import com.docmosis.document.DocumentProcessor;
+import com.docmosis.template.population.DataProviderBuilder;
 import com.fannog.proyectocliente.utils.BeanFactory;
 import com.fannog.proyectocliente.utils.DataTableModel;
 import com.fannog.proyectocliente.utils.Globals;
@@ -10,7 +13,9 @@ import com.fannog.proyectoservidor.entities.AccionSolicitud;
 import com.fannog.proyectoservidor.entities.AdjuntoSolicitud;
 import com.fannog.proyectoservidor.entities.Solicitud;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,12 +25,24 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JList;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class Solicitudes extends javax.swing.JPanel {
 
     private DataTableModel<Solicitud> solicitudTableModel = createSolicitudModel();
+    private JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+
+    public JFrame getParentFrame() {
+        return parentFrame;
+    }
+
+    public DataTableModel<Solicitud> getSolicitudTableModel() {
+        return solicitudTableModel;
+    }
 
     public Solicitudes() {
         initComponents();
@@ -36,13 +53,15 @@ public class Solicitudes extends javax.swing.JPanel {
         tableSolicitudes.getSelectionModel().addListSelectionListener(this::handleTableSolicitudesSelectionEvent);
         listAdjuntos.getSelectionModel().addListSelectionListener(this::handleListAdjuntosSelection);
 
+        ((DefaultTableCellRenderer) tableSolicitudes.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(SwingConstants.LEFT);
+
         try {
             loadSolicitudes();
         } catch (Exception ex) {
         }
     }
 
-    private void loadSolicitudes() throws Exception {
+    public void loadSolicitudes() throws Exception {
         SolicitudDAO solicitudDAO = BeanFactory.local().lookup("Solicitud");
 
         List<Solicitud> solicitudes = solicitudDAO.findAllWithRelations();
@@ -50,7 +69,7 @@ public class Solicitudes extends javax.swing.JPanel {
         tableSolicitudes.setModel(solicitudTableModel);
     }
 
-    private void loadAdjuntos(Long idSolicitud) throws Exception {
+    public void loadAdjuntos(Long idSolicitud) throws Exception {
         AdjuntoSolicitudDAO adjuntoSolicitudDAO = BeanFactory.local().lookup("AdjuntoSolicitud");
 
         List<AdjuntoSolicitud> adjuntosSolicitud = adjuntoSolicitudDAO.findAllBySolicitud(idSolicitud);
@@ -62,7 +81,7 @@ public class Solicitudes extends javax.swing.JPanel {
         listAdjuntos.setModel(listModel);
     }
 
-    private void loadAcciones(Long idSolicitud) throws Exception {
+    public void loadAcciones(Long idSolicitud) throws Exception {
         AccionSolicitudDAO accionSolicitudDAO = BeanFactory.local().lookup("AccionSolicitud");
 
         List<AccionSolicitud> accionesSolicitud = accionSolicitudDAO.findAllBySolicitud(idSolicitud);
@@ -74,23 +93,22 @@ public class Solicitudes extends javax.swing.JPanel {
         listAcciones.setModel(listModel);
     }
 
-    
     private void enableOperationBtns(boolean enabled) {
-        jButton1.setEnabled(enabled);
-        jButton3.setEnabled(enabled);
+        btnCargarPlantilla.setEnabled(enabled);
+        btnRegistrarAccion.setEnabled(enabled);
+        btnEmitir.setEnabled(enabled);
     }
 
     private void enableTabs(boolean enabled) {
         jTabbedPane2.setEnabledAt(0, enabled);
         jTabbedPane2.setEnabledAt(1, enabled);
-        jTabbedPane2.setEnabledAt(2, enabled);
     }
 
-    private DataTableModel createSolicitudModel() {
+    public DataTableModel createSolicitudModel() {
 
         String[] COLUMNS = {"ID", "Estudiante", "Tipo", "Estado"};
 
-        return new DataTableModel<Solicitud>() {
+        return new DataTableModel<Solicitud>(COLUMNS) {
             @Override
             public Object getValueAt(Solicitud solicitud, int columnas) {
                 return switch (columnas) {
@@ -108,21 +126,10 @@ public class Solicitudes extends javax.swing.JPanel {
                         null;
                 };
             }
-
-            @Override
-            public String getColumnName(int column) {
-                return COLUMNS[column];
-            }
-
-            @Override
-            public int getColumnCount() {
-                return COLUMNS.length;
-            }
         };
     }
 
-
-    private Solicitud getSelectedSolicitud() {
+    public Solicitud getSelectedSolicitud() {
         int row = tableSolicitudes.getSelectedRow();
 
         Solicitud s = (Solicitud) tableSolicitudes.getValueAt(row, -1);
@@ -130,11 +137,11 @@ public class Solicitudes extends javax.swing.JPanel {
         return s;
     }
 
-    private AdjuntoSolicitud getSelectedAdjunto() {
+    public AdjuntoSolicitud getSelectedAdjunto() {
         return listAdjuntos.getSelectedValue();
     }
 
-    private void handleTableSolicitudesSelectionEvent(ListSelectionEvent e) {
+    public void handleTableSolicitudesSelectionEvent(ListSelectionEvent e) {
         boolean seleccionValida = getSelectedSolicitud() != null;
 
         if (seleccionValida) {
@@ -151,7 +158,7 @@ public class Solicitudes extends javax.swing.JPanel {
         enableOperationBtns(seleccionValida);
     }
 
-    private void handleListAdjuntosSelection(ListSelectionEvent e) {
+    public void handleListAdjuntosSelection(ListSelectionEvent e) {
         boolean seleccionValida = !listAdjuntos.isSelectionEmpty();
 
         btnDescargar.setEnabled(seleccionValida);
@@ -162,12 +169,12 @@ public class Solicitudes extends javax.swing.JPanel {
     private void initComponents() {
 
         jToolBar1 = new javax.swing.JToolBar();
-        jButton1 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        btnCargarPlantilla = new javax.swing.JButton();
+        btnRegistrarAccion = new javax.swing.JButton();
+        btnEmitir = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         tableSolicitudes = new javax.swing.JTable();
         jTabbedPane2 = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         listAdjuntos = new javax.swing.JList<>();
@@ -176,21 +183,48 @@ public class Solicitudes extends javax.swing.JPanel {
         jPanel3 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         listAcciones = new javax.swing.JList<>();
+        jTextField1 = new javax.swing.JTextField();
+        jComboBox1 = new javax.swing.JComboBox<>();
 
         jToolBar1.setRollover(true);
 
-        jButton1.setText("Emitir");
-        jButton1.setFocusable(false);
-        jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(jButton1);
+        btnCargarPlantilla.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
+        btnCargarPlantilla.setText("Cargar plantilla");
+        btnCargarPlantilla.setFocusable(false);
+        btnCargarPlantilla.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnCargarPlantilla.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnCargarPlantilla.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCargarPlantillaActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnCargarPlantilla);
 
-        jButton3.setText("Registrar acción");
-        jButton3.setFocusable(false);
-        jButton3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButton3.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(jButton3);
+        btnRegistrarAccion.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
+        btnRegistrarAccion.setText("Registrar acción");
+        btnRegistrarAccion.setFocusable(false);
+        btnRegistrarAccion.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnRegistrarAccion.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnRegistrarAccion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegistrarAccionActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnRegistrarAccion);
 
+        btnEmitir.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
+        btnEmitir.setText("Emitir");
+        btnEmitir.setFocusable(false);
+        btnEmitir.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnEmitir.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnEmitir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEmitirActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnEmitir);
+
+        tableSolicitudes.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         tableSolicitudes.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -199,26 +233,19 @@ public class Solicitudes extends javax.swing.JPanel {
 
             }
         ));
+        tableSolicitudes.setRowHeight(30);
         tableSolicitudes.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        tableSolicitudes.getTableHeader().setReorderingAllowed(false);
         jScrollPane2.setViewportView(tableSolicitudes);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 464, Short.MAX_VALUE)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 612, Short.MAX_VALUE)
-        );
+        jTabbedPane2.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
 
-        jTabbedPane2.addTab("Info.", jPanel1);
-
+        listAdjuntos.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         jScrollPane1.setViewportView(listAdjuntos);
 
         jToolBar2.setRollover(true);
 
+        btnDescargar.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
         btnDescargar.setText("Descargar");
         btnDescargar.setFocusable(false);
         btnDescargar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -236,7 +263,7 @@ public class Solicitudes extends javax.swing.JPanel {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 452, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)
                 .addContainerGap())
             .addComponent(jToolBar2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
@@ -252,6 +279,10 @@ public class Solicitudes extends javax.swing.JPanel {
 
         jTabbedPane2.addTab("Archivos adj.", jPanel2);
 
+        jPanel3.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
+
+        listAcciones.setFont(new java.awt.Font("Source Sans Pro", 0, 18)); // NOI18N
+        listAcciones.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         listAcciones.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -261,67 +292,81 @@ public class Solicitudes extends javax.swing.JPanel {
                     AccionSolicitud a = (AccionSolicitud) value;
 
                     String parsedFechaHora = a.getFecHora().format(Globals.dateTimeFormatter);
+                    String text = "<html>" + a.getDetalle() + "<br/>(" + parsedFechaHora + ")" + " </html>";
 
-                    setText(a.getDetalle() + " (" + parsedFechaHora + ")");
+                    setText(text);
                 }
 
                 return this;
             }
-        });
-        jScrollPane3.setViewportView(listAcciones);
+        }
+    );
+    listAcciones.setLayoutOrientation(javax.swing.JList.HORIZONTAL_WRAP);
+    listAcciones.setVisibleRowCount(-1);
+    jScrollPane3.setViewportView(listAcciones);
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 458, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+    javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+    jPanel3.setLayout(jPanel3Layout);
+    jPanel3Layout.setHorizontalGroup(
+        jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        .addGroup(jPanel3Layout.createSequentialGroup()
+            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 418, Short.MAX_VALUE)
+            .addContainerGap())
+    );
+    jPanel3Layout.setVerticalGroup(
+        jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        .addGroup(jPanel3Layout.createSequentialGroup()
+            .addContainerGap()
+            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
+            .addContainerGap())
+    );
 
-        jTabbedPane2.addTab("Acciones", jPanel3);
+    jTabbedPane2.addTab("Acciones", jPanel3);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTabbedPane2)
-                        .addContainerGap())))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+    javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+    this.setLayout(layout);
+    layout.setHorizontalGroup(
+        layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        .addGroup(layout.createSequentialGroup()
+            .addGap(12, 12, 12)
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 445, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(jTextField1)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                     .addComponent(jTabbedPane2)
-                    .addComponent(jScrollPane2))
-                .addContainerGap())
-        );
+                    .addContainerGap())
+                .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+    );
+    layout.setVerticalGroup(
+        layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        .addGroup(layout.createSequentialGroup()
+            .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(jTabbedPane2)
+                .addGroup(layout.createSequentialGroup()
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(jScrollPane2)))
+            .addContainerGap())
+    );
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnDescargarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDescargarActionPerformed
-        JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
-
         AdjuntoSolicitud adjunto = getSelectedAdjunto();
 
         JFileChooser fileChooser = new JFileChooser();
 
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("*.pdf", "pdf"));
         fileChooser.setSelectedFile(new File(adjunto.getNombArchivo()));
         fileChooser.setDialogTitle("Descargar archivo");
 
@@ -329,12 +374,6 @@ public class Solicitudes extends javax.swing.JPanel {
 
         if (option == JFileChooser.APPROVE_OPTION) {
             String strPath = fileChooser.getSelectedFile().getAbsolutePath();
-            
-            System.out.println(strPath);
-
-            if (!strPath.toLowerCase().endsWith(".pdf")) {
-                strPath += ".pdf";
-            }
 
             Path path = new File(strPath).toPath();
 
@@ -343,23 +382,79 @@ public class Solicitudes extends javax.swing.JPanel {
             try {
                 Files.write(path, fileContent);
             } catch (IOException ex) {
-                ex.printStackTrace();
             }
         }
     }//GEN-LAST:event_btnDescargarActionPerformed
 
+    private void btnCargarPlantillaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCargarPlantillaActionPerformed
+        Solicitud solicitud = getSelectedSolicitud();
+
+        JFileChooser fileChooser = new JFileChooser();
+
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        fileChooser.setDialogTitle("Descargar archivo");
+
+        int option = fileChooser.showSaveDialog(parentFrame);
+
+        if (option == JFileChooser.APPROVE_OPTION) {
+            byte[] plantillaContent = solicitud.getTipo().getPlantilla();
+
+            FileOutputStream fos = null;
+            File templateFile = null;
+
+            SystemManager.initialise();
+
+            DataProviderBuilder dpb = new DataProviderBuilder();
+
+            dpb.add("nombres", "Marcos");
+            dpb.add("apellidos", "Cianzio");
+
+            try {
+                templateFile = File.createTempFile("plantilla", ".doc", null);
+                fos = new FileOutputStream(templateFile);
+                fos.write(plantillaContent);
+
+                if (templateFile.canRead()) {
+                    DocumentProcessor.renderDoc(templateFile, fileChooser.getSelectedFile(), dpb.getDataProvider());
+
+                    Desktop.getDesktop().open(fileChooser.getSelectedFile());
+                }
+            } catch (Exception e) {
+            } finally {
+                try {
+                    fos.close();
+                } catch (IOException ex) {
+                }
+
+                templateFile.delete();
+                SystemManager.release();
+            }
+        }
+    }//GEN-LAST:event_btnCargarPlantillaActionPerformed
+
+    private void btnRegistrarAccionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarAccionActionPerformed
+        new NewAccion(parentFrame, true, getSelectedSolicitud(), this).show();
+     }//GEN-LAST:event_btnRegistrarAccionActionPerformed
+
+    private void btnEmitirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEmitirActionPerformed
+        new Emitir(parentFrame, true, getSelectedSolicitud(), this).show();
+    }//GEN-LAST:event_btnEmitirActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCargarPlantilla;
     private javax.swing.JButton btnDescargar;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JButton btnEmitir;
+    private javax.swing.JButton btnRegistrarAccion;
+    private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTabbedPane jTabbedPane2;
+    private javax.swing.JTextField jTextField1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JList<String> listAcciones;

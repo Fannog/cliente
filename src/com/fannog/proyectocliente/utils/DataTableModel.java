@@ -6,6 +6,12 @@ import javax.swing.table.AbstractTableModel;
 
 public abstract class DataTableModel<T> extends AbstractTableModel {
 
+    protected String[] COLUMNS;
+
+    public DataTableModel(String[] COLUMNS) {
+        this.COLUMNS = COLUMNS;
+    }
+
     private List<T> rows = new ArrayList<>();
 
     public List<T> getListRows() {
@@ -31,6 +37,12 @@ public abstract class DataTableModel<T> extends AbstractTableModel {
     public abstract Object getValueAt(T t, int columnas);
 
     @Override
-    public abstract String getColumnName(int columnas);
+    public String getColumnName(int column) {
+        return COLUMNS[column];
+    }
 
+    @Override
+    public int getColumnCount() {
+        return COLUMNS.length;
+    }
 }

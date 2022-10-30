@@ -6,35 +6,39 @@ import com.fannog.proyectocliente.ui.register.Register;
 import com.fannog.proyectocliente.ui.tutor.MenuTutor;
 import com.fannog.proyectocliente.utils.BeanFactory;
 import com.fannog.proyectocliente.utils.FieldUtils;
-import com.fannog.proyectoservidor.DAO.EstudianteDAO;
+import com.fannog.proyectocliente.utils.Globals;
 import com.fannog.proyectoservidor.DAO.UsuarioDAO;
+import com.fannog.proyectoservidor.entities.Analista;
+import com.fannog.proyectoservidor.entities.Estudiante;
+import com.fannog.proyectoservidor.entities.Tutor;
+import com.fannog.proyectoservidor.entities.Usuario;
 import com.fannog.proyectoservidor.exceptions.ServicioException;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-public class Login extends javax.swing.JFrame {
-
-    private BeanFactory beanFactory = BeanFactory.create();
+public class Login extends JFrame {
 
     public Login() {
         initComponents();
     }
 
-    public void showUsuarioRol(UsuarioDAO usuarioDAO) throws ServicioException {
-        usuarioDAO = beanFactory.lookup("Usuario");
-        String nombreUsuario = txtNombreUsuario.getText().trim();
-        
-        Long rolUsuario = usuarioDAO.findByNombreUsuario(nombreUsuario).getRolUsuario();
-        Long rolEstudiante = 1L;
-        Long rolTutor = 2L;
-        Long rolAnalista = 3L;
-        
-        if(rolUsuario == rolEstudiante) {
+    public void showMenu(Usuario usuario) throws ServicioException, Exception {
+
+        if (usuario instanceof Estudiante) {
             MenuEstudiante menuEstudiante = new MenuEstudiante();
             menuEstudiante.setVisible(true);
-        } else if (rolUsuario == rolTutor){
+
+            return;
+        }
+
+        if (usuario instanceof Tutor) {
             MenuTutor menuTutor = new MenuTutor();
             menuTutor.setVisible(true);
-        } else if (rolUsuario == rolAnalista) {
+
+            return;
+        }
+
+        if (usuario instanceof Analista) {
             MenuAnalista menuAnalista = new MenuAnalista();
             menuAnalista.setVisible(true);
         }
@@ -59,7 +63,7 @@ public class Login extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Iniciar sesión");
-        setResizable(false);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         jLabel1.setFont(new java.awt.Font("Source Sans Pro Black", 0, 36)); // NOI18N
         jLabel1.setText("Iniciar sesión ahora");
@@ -108,7 +112,7 @@ public class Login extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(84, 84, 84)
+                .addContainerGap(160, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(btnRegistrar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
@@ -126,12 +130,12 @@ public class Login extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jSeparator2))
                     .addComponent(txtPassword))
-                .addContainerGap(84, Short.MAX_VALUE))
+                .addContainerGap(161, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(29, 29, 29)
+                .addContainerGap(84, Short.MAX_VALUE)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel2)
@@ -150,17 +154,19 @@ public class Login extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(18, 18, 18)
                         .addComponent(btnInciarSesion, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnRegistrar, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(61, Short.MAX_VALUE))
         );
 
-        pack();
+        setSize(new java.awt.Dimension(846, 665));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -179,31 +185,27 @@ public class Login extends javax.swing.JFrame {
         String nombreUsuario = txtNombreUsuario.getText().trim();
         String password = new String(txtPassword.getPassword());
 
-        UsuarioDAO usuarioDAO = beanFactory.lookup("Usuario");
-
         try {
-            usuarioDAO.login(nombreUsuario, password);
+            UsuarioDAO usuarioDAO = BeanFactory.local().lookup("Usuario");
+
+            Usuario usuario = usuarioDAO.login(nombreUsuario, password);
+
+            Globals.setLoggedUser(usuario);
+
+            showMenu(usuario);
+
             dispose();
 
-           showUsuarioRol(usuarioDAO);
         } catch (ServicioException e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Ha ocurrido un error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
         }
 
     }//GEN-LAST:event_btnInciarSesionActionPerformed
 
     private void txtNombreUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNombreUsuarioActionPerformed
-        // TODO add your handling code here:
     }//GEN-LAST:event_txtNombreUsuarioActionPerformed
 
-    public static void main(String args[]) {
-
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Login().setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnInciarSesion;
