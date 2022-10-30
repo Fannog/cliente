@@ -57,11 +57,11 @@ public class RegisterTutorForm extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblArea)
-                    .addComponent(txtArea, javax.swing.GroupLayout.DEFAULT_SIZE, 229, Short.MAX_VALUE))
-                .addGap(21, 21, 21)
+                    .addComponent(txtArea, javax.swing.GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblRolTutor)
-                    .addComponent(comboRolTutor, 0, 234, Short.MAX_VALUE)))
+                    .addComponent(comboRolTutor, 0, 235, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
